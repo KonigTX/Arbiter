@@ -1,0 +1,96 @@
+plugins {
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    // Cloth Config and ModMenu
+    maven {
+        name = "Shedaniel"
+        url = "https://maven.shedaniel.me/"
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/releases/"
+    }
+    // fabric-permissions-api (LuckPerms bridge)
+    maven {
+        name = "Lucko"
+        url = "https://maven.lucko.me/"
+    }
+    // Jankson (JSON5 serialization)
+    maven {
+        name = "CottonMC"
+        url = "https://server.cottonmc.org/maven"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // Minecraft + Fabric toolchain
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Cloth Config — POJO config + in-game GUI backbone
+    modApi "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+    include "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+
+    // ModMenu — exposes Cloth Config GUI in-game
+    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+    // Jankson — JSON5 file read/write with comment preservation
+    implementation "blue.endless:jankson:${project.jankson_version}"
+    include "blue.endless:jankson:${project.jankson_version}"
+
+    // fabric-permissions-api — LuckPerms bridge with OP fallback
+    modImplementation "me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"
+    include "me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+// Standard Fabric publishing block (optional — for local maven)
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        // Define remote repos here if publishing
+    }
+}
