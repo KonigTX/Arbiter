@@ -2,10 +2,12 @@
 
 # Arbiter
 
-### Smarter than `/kill @e[type=item]`
+### Items cleared. Loot respected.
 
-**Ground item clearing for Minecraft servers — protects what matters, clears what doesn't.**
+**A Fabric server-side mod that judges every ground item before removing it — protecting named gear, enchanted items, rare drops, and anything near players. TPS-aware, per-dimension, and hot-reloadable.**
 
+[![Modrinth](https://img.shields.io/modrinth/v/arbiter?style=for-the-badge&color=00AF5C&logo=modrinth&logoColor=white&label=Modrinth)](https://modrinth.com/mod/arbiter)
+[![CurseForge](https://img.shields.io/badge/CurseForge-available-F16436?style=for-the-badge&logo=curseforge&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/arbiter)
 [![Fabric](https://img.shields.io/badge/loader-Fabric-63432C?style=for-the-badge&logo=fabricmc&logoColor=white)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62B47A?style=for-the-badge&logo=minecraft&logoColor=white)](https://minecraft.net)
 [![Environment](https://img.shields.io/badge/environment-Server--Side-blue?style=for-the-badge)](.)
@@ -131,21 +133,21 @@ Arbiter generates a fully-commented `config/arbiter.json5` on first run. Here ar
 
 | Setting | Default | Description |
 |---|---|---|
-| `clear_interval_seconds` | `300` | Time between scheduled clears |
-| `warning_start_seconds` | `30` | Bossbar appears this many seconds before clear |
-| `item_count_threshold` | `100` | Skip clear if fewer items than this |
-| `emergency_tps_threshold` | `15.0` | Auto-clear when TPS drops below this (`0` = off) |
-| `protect_named_items` | `true` | Protect anvil-renamed items |
-| `protect_enchanted_items` | `true` | Protect enchanted items |
-| `protect_rarity_minimum` | `"RARE"` | Minimum vanilla rarity to auto-protect |
-| `player_proximity_radius` | `10` | Don't clear items within N blocks of players |
-| `protected_namespaces` | `["mod_namespace"]` | Protect all items from these mods |
-| `bossbar_enabled` | `true` | Show the bossbar countdown |
-| `emergency_clear_cooldown_seconds` | `60` | Minimum seconds between emergency clears |
-| `protected_items` | `["minecraft:nether_star", ...]` | Exact item IDs that are always protected |
-| `item_overrides` | `{"minecraft:dirt": "BLACKLIST", ...}` | Per-item PROTECT or BLACKLIST — overrides all other rules |
-| `actionbar_warnings_enabled` | `false` | Show countdown in actionbar alongside or instead of bossbar |
-| `broadcast_clear_results` | `true` | Announce clear results to all players |
+| `clearIntervalSeconds` | `300` | Time between scheduled clears |
+| `warningStartSeconds` | `30` | Bossbar appears this many seconds before clear |
+| `itemCountThreshold` | `100` | Skip clear if fewer items than this |
+| `emergencyTpsThreshold` | `15.0` | Auto-clear when TPS drops below this (`0` = off) |
+| `protectNamedItems` | `true` | Protect anvil-renamed items |
+| `protectEnchantedItems` | `true` | Protect enchanted items |
+| `protectRarityMinimum` | `"RARE"` | Minimum vanilla rarity to auto-protect |
+| `playerProximityRadius` | `10` | Don't clear items within N blocks of players |
+| `protectedNamespaces` | `["mod_namespace"]` | Protect all items from these mods |
+| `bossbarEnabled` | `true` | Show the bossbar countdown |
+| `emergencyClearCooldownSeconds` | `60` | Minimum seconds between emergency clears |
+| `protectedItems` | `["minecraft:nether_star", ...]` | Exact item IDs that are always protected |
+| `itemOverrides` | `{"minecraft:dirt": "BLACKLIST", ...}` | Per-item PROTECT or BLACKLIST — overrides all other rules |
+| `actionbarWarningsEnabled` | `false` | Show countdown in actionbar alongside or instead of bossbar |
+| `broadcastClearResults` | `true` | Announce clear results to all players |
 
 <details>
 <summary><b>📄 Full Example Config</b> (click to expand)</summary>
@@ -154,64 +156,64 @@ Arbiter generates a fully-commented `config/arbiter.json5` on first run. Here ar
 // Arbiter configuration — changes are hot-reloaded automatically
 {
   // ── Timing ──────────────────────────────────────────────────
-  "clear_interval_seconds": 300,
-  "warning_start_seconds": 30,
+  "clearIntervalSeconds": 300,
+  "warningStartSeconds": 30,
 
   // ── Thresholds ──────────────────────────────────────────────
-  "item_count_threshold": 100,
-  "emergency_tps_threshold": 15.0,
-  "emergency_clear_cooldown_seconds": 60,
+  "itemCountThreshold": 100,
+  "emergencyTpsThreshold": 15.0,
+  "emergencyClearCooldownSeconds": 60,
 
   // ── Item Protection ─────────────────────────────────────────
-  "protect_named_items": true,
-  "protect_enchanted_items": true,
-  "protect_rarity_minimum": "RARE",
-  "player_proximity_radius": 10,
+  "protectNamedItems": true,
+  "protectEnchantedItems": true,
+  "protectRarityMinimum": "RARE",
+  "playerProximityRadius": 10,
 
   // ── Mod & Item Lists ────────────────────────────────────────
-  "protected_namespaces": [
+  "protectedNamespaces": [
     "your_mod"
   ],
-  "protected_items": [
+  "protectedItems": [
     "minecraft:nether_star",
     "minecraft:elytra",
     "minecraft:dragon_egg",
     "minecraft:totem_of_undying"
   ],
-  "namespace_tiers": {
+  "namespaceTiers": {
     "minecraft": "NORMAL",
     "create": "NORMAL"
   },
 
   // Per-item overrides — PROTECT or BLACKLIST specific items
   // These override ALL other rules
-  "item_overrides": {
+  "itemOverrides": {
     "minecraft:dirt": "BLACKLIST",
     "minecraft:cobblestone": "BLACKLIST",
     "minecraft:netherite_ingot": "PROTECT"
   },
 
   // ── Display ─────────────────────────────────────────────────
-  "bossbar_enabled": true,
-  "bossbar_style": "NOTCHED_10",
-  "bossbar_yellow_threshold_seconds": 15,
-  "bossbar_red_threshold_seconds": 5,
-  "actionbar_warnings_enabled": false,
+  "bossbarEnabled": true,
+  "bossbarStyle": "NOTCHED_10",
+  "bossbarYellowThresholdSeconds": 15,
+  "bossbarRedThresholdSeconds": 5,
+  "actionbarWarningsEnabled": false,
 
   // ── Per-Dimension Overrides ─────────────────────────────────
   "dimensions": {
     "minecraft:the_nether": {
-      "clear_interval_seconds": 180,
-      "item_count_threshold": 50
+      "clearIntervalSeconds": 180,
+      "itemCountThreshold": 50
     },
     "minecraft:the_end": {
-      "clear_interval_seconds": 120
+      "clearIntervalSeconds": 120
     }
   },
 
   // ── Logging ─────────────────────────────────────────────────
-  "log_clears_to_console": true,
-  "broadcast_clear_results": true
+  "logClearsToConsole": true,
+  "broadcastClearResults": true
 }
 ```
 

@@ -30,7 +30,7 @@ public class BossBarHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/BossBarHandler");
 
     /** The active bossbar, or {@code null} when no countdown is running. */
-    private ServerBossBar activeBar = null;
+    private volatile ServerBossBar activeBar = null;
 
     /** Total duration in seconds of the current countdown — used to compute fill percent. */
     private int totalSeconds = 0;
