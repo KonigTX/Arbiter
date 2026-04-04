@@ -1,6 +1,6 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
-import com.bhd.autoclear.config.ResolvedConfig;
+import com.bhd.arbiter.config.ResolvedConfig;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.TypeFilter;
@@ -28,7 +28,7 @@ import java.util.List;
  */
 public final class ItemScanner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/ItemScanner");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/ItemScanner");
 
     private ItemScanner() {
         // Utility class — not instantiable
@@ -73,7 +73,7 @@ public final class ItemScanner {
 
     /**
      * Returns a quick count of all item entities in the world without applying filters.
-     * Used by the {@code /autoclear status} command for a fast summary.
+     * Used by the {@code /arbiter status} command for a fast summary.
      */
     public static int countAll(ServerWorld world) {
         return world.getEntitiesByType(

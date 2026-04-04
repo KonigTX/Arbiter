@@ -1,6 +1,6 @@
-package com.bhd.autoclear.display;
+package com.bhd.arbiter.display;
 
-import com.bhd.autoclear.config.ResolvedConfig;
+import com.bhd.arbiter.config.ResolvedConfig;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.server.MinecraftServer;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BossBarHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/BossBarHandler");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/BossBarHandler");
 
     /** The active bossbar, or {@code null} when no countdown is running. */
     private ServerBossBar activeBar = null;

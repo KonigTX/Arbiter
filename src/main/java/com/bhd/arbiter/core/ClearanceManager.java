@@ -1,9 +1,9 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
-import com.bhd.autoclear.config.ConfigManager;
-import com.bhd.autoclear.config.ItemTier;
-import com.bhd.autoclear.config.ResolvedConfig;
-import com.bhd.autoclear.display.BossBarHandler;
+import com.bhd.arbiter.config.ConfigManager;
+import com.bhd.arbiter.config.ItemTier;
+import com.bhd.arbiter.config.ResolvedConfig;
+import com.bhd.arbiter.display.BossBarHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ClearanceManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/ClearanceManager");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/ClearanceManager");
 
     private final ConfigManager configManager;
     private final TpsTracker tpsTracker;
@@ -118,7 +118,7 @@ public class ClearanceManager {
 
     /**
      * Starts a bossbar countdown for {@code seconds} seconds without triggering a clear.
-     * Used by {@code /autoclear testbar [seconds]}.
+     * Used by {@code /arbiter testbar [seconds]}.
      */
     public void startTestBar(MinecraftServer server, int seconds) {
         testBarTicksRemaining = seconds * 20;
@@ -221,7 +221,7 @@ public class ClearanceManager {
         // Threshold check — skip clear if not enough items (scheduled clears only)
         if (!skipThreshold && config.itemCountThreshold > 0 && result.totalFound() < config.itemCountThreshold) {
             if (config.logClearsToConsole) {
-                LOGGER.info("[AutoClear/Scheduled] {} - skipped (found {}, threshold {})",
+                LOGGER.info("[Arbiter/Scheduled] {} - skipped (found {}, threshold {})",
                         world.getRegistryKey().getValue(), result.totalFound(), config.itemCountThreshold);
             }
             return;
@@ -241,7 +241,7 @@ public class ClearanceManager {
         // Console logging
         if (config.logClearsToConsole) {
             String prefix = emergency ? "[EMERGENCY] " : "";
-            LOGGER.info("{}[AutoClear] {} - cleared {}/{} items",
+            LOGGER.info("{}[Arbiter] {} - cleared {}/{} items",
                     prefix, world.getRegistryKey().getValue(), removed, total);
         }
 
@@ -249,8 +249,8 @@ public class ClearanceManager {
         if (config.broadcastClearResults && world.getServer() != null && total > 0) {
             int saved = total - removed;
             String msgText = emergency
-                ? "[AutoClear] EMERGENCY CLEAR - Cleared " + removed + " items | " + saved + " protected (low TPS)"
-                : "[AutoClear] Cleared " + removed + " items | " + saved + " protected";
+                ? "[Arbiter] EMERGENCY CLEAR - Cleared " + removed + " items | " + saved + " protected (low TPS)"
+                : "[Arbiter] Cleared " + removed + " items | " + saved + " protected";
             Text message = Text.literal(msgText)
                     .formatted(emergency ? Formatting.RED : Formatting.YELLOW);
             world.getServer().getPlayerManager().broadcast(message, false);
@@ -301,7 +301,7 @@ public class ClearanceManager {
 
     /**
      * Immediately clears all loaded worlds, bypassing the scheduler.
-     * Used by {@code /autoclear force}.
+     * Used by {@code /arbiter force}.
      */
     public void forceAllWorlds(MinecraftServer server) {
         bossBarHandler.dismiss();
@@ -315,7 +315,7 @@ public class ClearanceManager {
 
     /**
      * Immediately clears a single world, bypassing the scheduler.
-     * Used by {@code /autoclear force <dimension>}.
+     * Used by {@code /arbiter force <dimension>}.
      */
     public void forceWorld(ServerWorld world) {
         RegistryKey<World> key = world.getRegistryKey();
@@ -338,7 +338,7 @@ public class ClearanceManager {
         return remaining / 20;
     }
 
-    // ── Dry-run (used by /autoclear dryrun) ──────────────────────────────────
+    // ── Dry-run (used by /arbiter dryrun) ──────────────────────────────────
 
     /**
      * Runs the item scan pipeline without discarding anything and reports what a real

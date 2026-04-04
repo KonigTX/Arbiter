@@ -1,4 +1,4 @@
-package com.bhd.autoclear.config;
+package com.bhd.arbiter.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;

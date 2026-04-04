@@ -1,4 +1,4 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -60,7 +60,7 @@ public class StatsTracker {
      */
     public String getFormattedStats() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== AutoClear Session Stats ===\n");
+        sb.append("=== Arbiter Session Stats ===\n");
         sb.append("  Total clears run   : ").append(totalClears.get()).append("\n");
         sb.append("  Total items removed: ").append(totalItemsRemoved.get()).append("\n");
 

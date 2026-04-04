@@ -1,4 +1,4 @@
-package com.bhd.autoclear.config;
+package com.bhd.arbiter.config;
 
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonGrammar;
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Manages loading, saving, and hot-reloading of {@code config/autoclear.json5}.
+ * Manages loading, saving, and hot-reloading of {@code config/arbiter.json5}.
  *
  * <p>Key responsibilities:
  * <ul>
@@ -36,8 +36,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ConfigManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/ConfigManager");
-    private static final String CONFIG_FILENAME = "autoclear.json5";
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/ConfigManager");
+    private static final String CONFIG_FILENAME = "arbiter.json5";
 
     private final Jankson jankson;
     private final Path configPath;
@@ -56,7 +56,7 @@ public class ConfigManager {
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
-     * Loads (or creates) {@code config/autoclear.json5}. Safe to call at any time;
+     * Loads (or creates) {@code config/arbiter.json5}. Safe to call at any time;
      * the hot-reload thread also calls this when the file changes.
      */
     public void load() {
@@ -70,9 +70,9 @@ public class ConfigManager {
             applyModePreset(loaded);
             loaded.clampToValidRanges();
             configRef.set(loaded);
-            LOGGER.info("AutoClear config loaded from {}", configPath);
+            LOGGER.info("Arbiter config loaded from {}", configPath);
         } catch (IOException | SyntaxError e) {
-            LOGGER.error("Failed to load autoclear.json5 - using previous/default config", e);
+            LOGGER.error("Failed to load arbiter.json5 - using previous/default config", e);
         }
     }
 
@@ -172,7 +172,7 @@ public class ConfigManager {
                 config.broadcastClearResults = true;
                 config.logClearsToConsole = true;
             }
-            default -> LOGGER.warn("AutoClear: unknown mode '{}' in config - ignoring (using loaded field values)", config.mode);
+            default -> LOGGER.warn("Arbiter: unknown mode '{}' in config - ignoring (using loaded field values)", config.mode);
         }
     }
 
@@ -183,16 +183,16 @@ public class ConfigManager {
     public void saveMode(String modeName) {
         if ("custom".equals(modeName)) {
             writeDefaults(); // restore the full annotated default config
-            LOGGER.info("AutoClear: restored default config (mode=custom)");
+            LOGGER.info("Arbiter: restored default config (mode=custom)");
             return;
         }
-        String content = "// AutoClear preset - hot-reload will apply immediately\n"
+        String content = "// Arbiter preset - hot-reload will apply immediately\n"
                 + "{ \"mode\": \"" + modeName + "\" }\n";
         try {
             Files.writeString(configPath, content);
-            LOGGER.info("AutoClear: saved mode '{}' to {}", modeName, configPath);
+            LOGGER.info("Arbiter: saved mode '{}' to {}", modeName, configPath);
         } catch (IOException e) {
-            LOGGER.error("Failed to write mode to autoclear.json5", e);
+            LOGGER.error("Failed to write mode to arbiter.json5", e);
         }
     }
 
@@ -210,23 +210,23 @@ public class ConfigManager {
      */
     public void startWatchThread() {
         Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "AutoClear-ConfigWatcher");
+            Thread t = new Thread(r, "Arbiter-ConfigWatcher");
             t.setDaemon(true);
             return t;
         }).submit(this::watchLoop);
-        LOGGER.info("AutoClear config watch thread started");
+        LOGGER.info("Arbiter config watch thread started");
     }
 
     // ── Config file write ─────────────────────────────────────────────────────
 
     private void writeDefaults() {
         String output = """
-// AutoClear configuration - changes are hot-reloaded automatically (no restart needed)
+// Arbiter configuration - changes are hot-reloaded automatically (no restart needed)
 {
     // ── Preset Mode ─────────────────────────────────────────────────────────
     // Quick-start preset. Options: "custom", "aggressive", "warden", "calm"
     // "custom" uses all fields below as-is. Any other value overwrites them on load.
-    // Use: /autoclear mode <name>
+    // Use: /arbiter mode <name>
     "mode": "custom",
 
     // ── Timing ──────────────────────────────────────────────────────────────
@@ -309,7 +309,7 @@ public class ConfigManager {
             Files.writeString(configPath, output);
             LOGGER.info("Created default config at {}", configPath);
         } catch (IOException e) {
-            LOGGER.error("Failed to write default autoclear.json5", e);
+            LOGGER.error("Failed to write default arbiter.json5", e);
         }
     }
 
@@ -341,7 +341,7 @@ public class ConfigManager {
                         break;
                     }
 
-                    LOGGER.info("Config file modified - reloading autoclear.json5");
+                    LOGGER.info("Config file modified - reloading arbiter.json5");
                     load();
 
                     Runnable cb = onReloadCallback;

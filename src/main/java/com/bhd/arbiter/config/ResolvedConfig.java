@@ -1,4 +1,4 @@
-package com.bhd.autoclear.config;
+package com.bhd.arbiter.config;
 
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.util.Identifier;

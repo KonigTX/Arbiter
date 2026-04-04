@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "autoclear",
+  "id": "arbiter",
   "version": "${version}",
-  "name": "AutoClear",
+  "name": "Arbiter",
   "description": "Intelligent ground item clearing: named/enchanted/rare item protection, bossbar countdown, TPS-aware emergency clear, per-dimension config, hot-reload.",
   "authors": [
     "BHD"
@@ -14,7 +14,7 @@
   "environment": "server",
   "entrypoints": {
     "main": [
-      "com.bhd.autoclear.AutoClearMod"
+      "com.bhd.arbiter.AutoClearMod"
     ]
   },
   "depends": {

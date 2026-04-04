@@ -1,4 +1,4 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TpsTracker {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/TpsTracker");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/TpsTracker");
 
     /** How many ticks between each MSPT sample. */
     private static final int SAMPLE_INTERVAL_TICKS = 100;

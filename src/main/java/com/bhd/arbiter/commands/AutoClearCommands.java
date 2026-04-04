@@ -1,10 +1,10 @@
-package com.bhd.autoclear.commands;
+package com.bhd.arbiter.commands;
 
-import com.bhd.autoclear.config.ConfigManager;
-import com.bhd.autoclear.core.ClearanceManager;
-import com.bhd.autoclear.core.ItemScanner;
-import com.bhd.autoclear.core.StatsTracker;
-import com.bhd.autoclear.core.TpsTracker;
+import com.bhd.arbiter.config.ConfigManager;
+import com.bhd.arbiter.core.ClearanceManager;
+import com.bhd.arbiter.core.ItemScanner;
+import com.bhd.arbiter.core.StatsTracker;
+import com.bhd.arbiter.core.TpsTracker;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -29,11 +29,11 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 /**
- * Registers the full {@code /autoclear} Brigadier command tree.
+ * Registers the full {@code /arbiter} Brigadier command tree.
  *
  * <p>Command tree:
  * <pre>
- * /autoclear
+ * /arbiter
  *   force                    — clear all loaded worlds immediately (autoclear.force, OP 4)
  *     [dimension]            — optional: e.g., "minecraft:the_nether"
  *   status                   — time until next clear, TPS, item counts (autoclear.status, OP 2)
@@ -46,16 +46,16 @@ import static net.minecraft.server.command.CommandManager.literal;
  */
 public final class AutoClearCommands {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/Commands");
+    private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/Commands");
 
     // Permission nodes
-    private static final String PERM_FORCE   = "autoclear.force";
-    private static final String PERM_STATUS  = "autoclear.status";
-    private static final String PERM_RELOAD  = "autoclear.reload";
-    private static final String PERM_STATS   = "autoclear.stats";
-    private static final String PERM_DRYRUN   = "autoclear.dryrun";
-    private static final String PERM_TESTBAR  = "autoclear.testbar";
-    private static final String PERM_MODE     = "autoclear.mode";
+    private static final String PERM_FORCE   = "arbiter.force";
+    private static final String PERM_STATUS  = "arbiter.status";
+    private static final String PERM_RELOAD  = "arbiter.reload";
+    private static final String PERM_STATS   = "arbiter.stats";
+    private static final String PERM_DRYRUN   = "arbiter.dryrun";
+    private static final String PERM_TESTBAR  = "arbiter.testbar";
+    private static final String PERM_MODE     = "arbiter.mode";
 
     // OP fallback levels
     private static final int OP_ADMIN  = 4;
@@ -96,7 +96,7 @@ public final class AutoClearCommands {
             TpsTracker tpsTracker) {
 
         dispatcher.register(
-            literal("autoclear")
+            literal("arbiter")
                 // No top-level execution — require a subcommand
                 .then(buildForce(clearanceManager))
                 .then(buildStatus(clearanceManager, tpsTracker))
@@ -107,10 +107,10 @@ public final class AutoClearCommands {
                 .then(buildMode(configManager, clearanceManager))
         );
 
-        LOGGER.debug("/autoclear command tree registered");
+        LOGGER.debug("/arbiter command tree registered");
     }
 
-    // ── /autoclear force [dimension] ──────────────────────────────────────────
+    // ── /arbiter force [dimension] ──────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildForce(
             ClearanceManager clearanceManager) {
@@ -170,7 +170,7 @@ public final class AutoClearCommands {
         return 1;
     }
 
-    // ── /autoclear status ─────────────────────────────────────────────────────
+    // ── /arbiter status ─────────────────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildStatus(
             ClearanceManager clearanceManager,
@@ -190,7 +190,7 @@ public final class AutoClearCommands {
         double tps = tpsTracker.getCurrentTps();
 
         ctx.getSource().sendFeedback(
-            () -> Text.literal("=== AutoClear Status ===").formatted(Formatting.GOLD), false);
+            () -> Text.literal("=== Arbiter Status ===").formatted(Formatting.GOLD), false);
         ctx.getSource().sendFeedback(
             () -> Text.literal("Current TPS: " + String.format("%.2f", tps))
                     .formatted(tps >= 18.0 ? Formatting.GREEN : tps >= 14.0 ? Formatting.YELLOW : Formatting.RED),
@@ -214,7 +214,7 @@ public final class AutoClearCommands {
         return 1;
     }
 
-    // ── /autoclear reload ─────────────────────────────────────────────────────
+    // ── /arbiter reload ─────────────────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildReload(
             ConfigManager configManager,
@@ -231,18 +231,18 @@ public final class AutoClearCommands {
             ClearanceManager clearanceManager) {
 
         ctx.getSource().sendFeedback(
-            () -> Text.literal("Reloading AutoClear configuration...").formatted(Formatting.YELLOW), true);
+            () -> Text.literal("Reloading Arbiter configuration...").formatted(Formatting.YELLOW), true);
 
         configManager.load();
         clearanceManager.resetAllCounters();
 
         ctx.getSource().sendFeedback(
-            () -> Text.literal("AutoClear configuration reloaded successfully.").formatted(Formatting.GREEN), true);
-        LOGGER.info("/autoclear reload executed by {}", ctx.getSource().getName());
+            () -> Text.literal("Arbiter configuration reloaded successfully.").formatted(Formatting.GREEN), true);
+        LOGGER.info("/arbiter reload executed by {}", ctx.getSource().getName());
         return 1;
     }
 
-    // ── /autoclear stats ──────────────────────────────────────────────────────
+    // ── /arbiter stats ──────────────────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildStats(
             StatsTracker statsTracker) {
@@ -263,7 +263,7 @@ public final class AutoClearCommands {
         return 1;
     }
 
-    // ── /autoclear dryrun [dimension] ────────────────────────────────────────
+    // ── /arbiter dryrun [dimension] ────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildDryRun(
             ClearanceManager clearanceManager) {
@@ -282,7 +282,7 @@ public final class AutoClearCommands {
 
         MinecraftServer server = ctx.getSource().getServer();
         ctx.getSource().sendFeedback(
-            () -> Text.literal("[AutoClear DryRun] Scanning all loaded worlds...")
+            () -> Text.literal("[Arbiter DryRun] Scanning all loaded worlds...")
                     .formatted(Formatting.GOLD), false);
 
         for (ServerWorld world : server.getWorlds()) {
@@ -321,7 +321,7 @@ public final class AutoClearCommands {
         return 1;
     }
 
-    // ── /autoclear testbar [seconds] ─────────────────────────────────────────
+    // ── /arbiter testbar [seconds] ─────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildTestBar(
             ClearanceManager clearanceManager, ConfigManager configManager) {
@@ -353,12 +353,12 @@ public final class AutoClearCommands {
 
         final int finalSeconds = seconds;
         ctx.getSource().sendFeedback(
-            () -> Text.literal("[AutoClear] Testbar started for " + finalSeconds + "s (no clear will fire).")
+            () -> Text.literal("[Arbiter] Testbar started for " + finalSeconds + "s (no clear will fire).")
                     .formatted(Formatting.AQUA), false);
         return 1;
     }
 
-    // ── /autoclear mode <modeName> ────────────────────────────────────────────
+    // ── /arbiter mode <modeName> ────────────────────────────────────────────
 
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildMode(
             ConfigManager configManager, ClearanceManager clearanceManager) {
@@ -396,7 +396,7 @@ public final class AutoClearCommands {
         clearanceManager.resetAllCounters();
 
         ctx.getSource().sendFeedback(
-            () -> Text.literal("[AutoClear] Mode set to '" + modeName + "' — config reloaded.")
+            () -> Text.literal("[Arbiter] Mode set to '" + modeName + "' — config reloaded.")
                     .formatted(Formatting.GREEN), true);
         return 1;
     }
@@ -408,7 +408,7 @@ public final class AutoClearCommands {
 
         // Header
         source.sendFeedback(
-            () -> Text.literal("[AutoClear DryRun] " + worldName)
+            () -> Text.literal("[Arbiter DryRun] " + worldName)
                     .formatted(Formatting.AQUA), false);
 
         // Total found

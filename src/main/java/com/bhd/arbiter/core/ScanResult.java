@@ -1,4 +1,4 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
 import net.minecraft.entity.ItemEntity;
 

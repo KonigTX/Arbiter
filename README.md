@@ -1,6 +1,6 @@
 <div align="center">
 
-# AutoClear
+# Arbiter
 
 ### Smarter than `/kill @e[type=item]`
 
@@ -63,7 +63,7 @@
 ### 🔧 Hot-Reload Config
 - **Annotated Config** — Every setting is documented in the config file itself
 - **Edit While Running** — Changes apply within ~1 second, no restart needed
-- **`/autoclear reload`** — Trigger a reload from in-game at any time
+- **`/arbiter reload`** — Trigger a reload from in-game at any time
 - **Validation** — Invalid values are clamped to safe ranges on load
 
 ---
@@ -72,39 +72,39 @@
 
 1. Install [Fabric Loader](https://fabricmc.net/use/) for Minecraft 1.21.1
 2. Install [Fabric API](https://modrinth.com/mod/fabric-api)
-3. Drop `autoclear-x.x.x.jar` into your server's `mods/` folder
-4. Start the server — `config/autoclear.json5` is generated automatically
-5. Edit the config to taste, or use `/autoclear reload`
+3. Drop `arbiter-x.x.x.jar` into your server's `mods/` folder
+4. Start the server — `config/arbiter.json5` is generated automatically
+5. Edit the config to taste, or use `/arbiter reload`
 
-> **Note:** AutoClear is server-side only. Players do not need to install anything.
+> **Note:** Arbiter is server-side only. Players do not need to install anything.
 
 ---
 
 ## Quick Start Modes
 
-Not sure where to start with configuration? AutoClear ships with three built-in presets that cover the most common server styles. Apply any preset with a single command — the config is rewritten automatically and hot-reloaded within ~1 second.
+Not sure where to start with configuration? Arbiter ships with three built-in presets that cover the most common server styles. Apply any preset with a single command — the config is rewritten automatically and hot-reloaded within ~1 second.
 
 | Mode | Interval | Item Threshold | Protection Level | Proximity / Emergency TPS | Command |
 |---|---|---|---|---|---|
-| `aggressive` | 60 s | 0 (always clear) | EPIC rarity only — named, enchanted, namespace lists all disabled | 2 blocks / 18.0 TPS | `/autoclear mode aggressive` |
-| `warden` | 180 s | 50 items | Named, enchanted, RARE+ rarity, namespace list | 8 blocks / 15.0 TPS | `/autoclear mode warden` |
-| `calm` | 600 s | 200 items | Named, enchanted, UNCOMMON+ rarity, namespace list, extended protected items | 20 blocks / 8.0 TPS | `/autoclear mode calm` |
-| `custom` | (from config) | (from config) | Hand-tuned — preset is a no-op; all values come from your config file | (from config) | `/autoclear mode custom` |
+| `aggressive` | 60 s | 0 (always clear) | EPIC rarity only — named, enchanted, namespace lists all disabled | 2 blocks / 18.0 TPS | `/arbiter mode aggressive` |
+| `warden` | 180 s | 50 items | Named, enchanted, RARE+ rarity, namespace list | 8 blocks / 15.0 TPS | `/arbiter mode warden` |
+| `calm` | 600 s | 200 items | Named, enchanted, UNCOMMON+ rarity, namespace list, extended protected items | 20 blocks / 8.0 TPS | `/arbiter mode calm` |
+| `custom` | (from config) | (from config) | Hand-tuned — preset is a no-op; all values come from your config file | (from config) | `/arbiter mode custom` |
 
-Applying a preset writes only `{ "mode": "<name>" }` to `config/autoclear.json5`. Preset values are resolved in memory at load time, so upgrading the mod always picks up the latest preset definitions. Switch back to manual tuning at any time by editing the config file and running `/autoclear reload`.
+Applying a preset writes only `{ "mode": "<name>" }` to `config/arbiter.json5`. Preset values are resolved in memory at load time, so upgrading the mod always picks up the latest preset definitions. Switch back to manual tuning at any time by editing the config file and running `/arbiter reload`.
 
 ---
 
 ## 💻 Commands
 
 ```
-/autoclear force [dimension]    Force-clear all worlds (or a specific dimension)
-/autoclear status               Show TPS, time until next clear, item counts per world
-/autoclear reload               Reload config from disk without restarting
-/autoclear stats                View session statistics (clears run, items removed)
-/autoclear dryrun [dimension]   Preview what would be cleared without removing anything
-/autoclear testbar [seconds]    Run a bossbar countdown test (default: warning_start_seconds)
-/autoclear mode <preset>        Apply a preset: aggressive | warden | calm | custom
+/arbiter force [dimension]    Force-clear all worlds (or a specific dimension)
+/arbiter status               Show TPS, time until next clear, item counts per world
+/arbiter reload               Reload config from disk without restarting
+/arbiter stats                View session statistics (clears run, items removed)
+/arbiter dryrun [dimension]   Preview what would be cleared without removing anything
+/arbiter testbar [seconds]    Run a bossbar countdown test (default: warning_start_seconds)
+/arbiter mode <preset>        Apply a preset: aggressive | warden | calm | custom
 ```
 
 *`dryrun` output example: `Would CLEAR: 47 items — Would protect: 12`*
@@ -113,13 +113,13 @@ Applying a preset writes only `{ "mode": "<name>" }` to `config/autoclear.json5`
 
 | Permission Node | Default OP Level | Description |
 |---|---|---|
-| `autoclear.force` | 4 | Force an immediate clear |
-| `autoclear.status` | 2 | View clear timers and TPS |
-| `autoclear.reload` | 4 | Reload configuration |
-| `autoclear.stats` | 2 | View session statistics |
-| `autoclear.dryrun` | 2 | Preview a clear without removing items |
-| `autoclear.testbar` | 4 | Run a bossbar countdown test |
-| `autoclear.mode` | 4 | Apply a built-in preset mode |
+| `arbiter.force` | 4 | Force an immediate clear |
+| `arbiter.status` | 2 | View clear timers and TPS |
+| `arbiter.reload` | 4 | Reload configuration |
+| `arbiter.stats` | 2 | View session statistics |
+| `arbiter.dryrun` | 2 | Preview a clear without removing items |
+| `arbiter.testbar` | 4 | Run a bossbar countdown test |
+| `arbiter.mode` | 4 | Apply a built-in preset mode |
 
 > Permissions integrate with [LuckPerms](https://luckperms.net/) automatically. Falls back to OP level when LuckPerms is not installed.
 
@@ -127,7 +127,7 @@ Applying a preset writes only `{ "mode": "<name>" }` to `config/autoclear.json5`
 
 ## ⚙️ Configuration
 
-AutoClear generates a fully-commented `config/autoclear.json5` on first run. Here are the key options:
+Arbiter generates a fully-commented `config/arbiter.json5` on first run. Here are the key options:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -151,7 +151,7 @@ AutoClear generates a fully-commented `config/autoclear.json5` on first run. Her
 <summary><b>📄 Full Example Config</b> (click to expand)</summary>
 
 ```json5
-// AutoClear configuration — changes are hot-reloaded automatically
+// Arbiter configuration — changes are hot-reloaded automatically
 {
   // ── Timing ──────────────────────────────────────────────────
   "clear_interval_seconds": 300,
@@ -221,7 +221,7 @@ AutoClear generates a fully-commented `config/autoclear.json5` on first run. Her
 
 ## 🛡️ Protection Priority System
 
-AutoClear evaluates every ground item through a **10-rule predicate chain**. The first matching rule wins:
+Arbiter evaluates every ground item through a **10-rule predicate chain**. The first matching rule wins:
 
 | Priority | Rule | Effect |
 |---|---|---|
@@ -251,7 +251,7 @@ AutoClear evaluates every ground item through a **10-rule predicate chain**. The
 | **Permissions** | [LuckPerms](https://luckperms.net/) (optional — falls back to OP levels) |
 
 ### Mod Compatibility
-AutoClear works with **any Fabric mod** out of the box. Protect any mod's items by adding its registry namespace to `protected_namespaces`:
+Arbiter works with **any Fabric mod** out of the box. Protect any mod's items by adding its registry namespace to `protected_namespaces`:
 
 ```json5
 "protected_namespaces": [
@@ -272,13 +272,13 @@ cd autoclear
 ./gradlew build
 ```
 
-Output: `build/libs/autoclear-1.1.1.jar`
+Output: `build/libs/arbiter-1.2.0.jar`
 
 ---
 
 ## 📊 How It Compares
 
-| Feature | AutoClear | ICL | ClearLagg |
+| Feature | Arbiter | ICL | ClearLagg |
 |---|---|---|---|
 | Bossbar countdown | ✅ Color-graduated | ❌ Chat only | ❌ Chat only |
 | Named item protection | ✅ | ❌ | ⚠️ Partial |

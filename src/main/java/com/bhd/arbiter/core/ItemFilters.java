@@ -1,7 +1,7 @@
-package com.bhd.autoclear.core;
+package com.bhd.arbiter.core;
 
-import com.bhd.autoclear.config.ItemTier;
-import com.bhd.autoclear.config.ResolvedConfig;
+import com.bhd.arbiter.config.ItemTier;
+import com.bhd.arbiter.config.ResolvedConfig;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;

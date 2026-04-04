@@ -1,4 +1,4 @@
-package com.bhd.autoclear.config;
+package com.bhd.arbiter.config;
 
 /**
  * Clearing priority tier for items.

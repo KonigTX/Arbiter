@@ -1,0 +1,25 @@
+{
+  "_comment": "Arbiter language file — en_us",
+
+  "arbiter.bossbar.title": "Items clearing in %ss",
+
+  "arbiter.broadcast.cleared": "[Arbiter] Cleared %s items (%s found)",
+  "arbiter.broadcast.emergency": "[Arbiter] EMERGENCY CLEAR — Cleared %s items (%s found) due to low TPS",
+
+  "arbiter.actionbar.warning": "Items clearing in %ss!",
+
+  "arbiter.command.force.all": "Forcing item clear on all loaded worlds...",
+  "arbiter.command.force.dimension": "Forcing item clear on dimension: %s",
+  "arbiter.command.force.done": "Item clear complete.",
+  "arbiter.command.force.invalid_dimension": "Invalid dimension identifier: '%s'",
+  "arbiter.command.force.world_not_found": "Dimension not loaded or not found: '%s'",
+
+  "arbiter.command.status.header": "=== Arbiter Status ===",
+  "arbiter.command.status.tps": "Current TPS: %s",
+  "arbiter.command.status.world": "  [%s] Next clear in: %s | Items on ground: %s",
+
+  "arbiter.command.reload.reloading": "Reloading Arbiter configuration...",
+  "arbiter.command.reload.done": "Arbiter configuration reloaded successfully.",
+
+  "arbiter.command.stats.header": "=== Arbiter Session Stats ==="
+}

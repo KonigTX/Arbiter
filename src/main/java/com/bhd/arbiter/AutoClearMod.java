@@ -1,11 +1,11 @@
-package com.bhd.autoclear;
+package com.bhd.arbiter;
 
-import com.bhd.autoclear.commands.AutoClearCommands;
-import com.bhd.autoclear.config.ConfigManager;
-import com.bhd.autoclear.core.ClearanceManager;
-import com.bhd.autoclear.core.StatsTracker;
-import com.bhd.autoclear.core.TpsTracker;
-import com.bhd.autoclear.display.BossBarHandler;
+import com.bhd.arbiter.commands.AutoClearCommands;
+import com.bhd.arbiter.config.ConfigManager;
+import com.bhd.arbiter.core.ClearanceManager;
+import com.bhd.arbiter.core.StatsTracker;
+import com.bhd.arbiter.core.TpsTracker;
+import com.bhd.arbiter.display.BossBarHandler;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +29,12 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoClearMod implements ModInitializer {
 
-    public static final String MOD_ID = "autoclear";
+    public static final String MOD_ID = "arbiter";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
     public void onInitialize() {
-        LOGGER.info("AutoClear initializing...");
+        LOGGER.info("Arbiter initializing...");
 
         // ── Step 1: Config ────────────────────────────────────────────────────
         ConfigManager configManager = new ConfigManager();
@@ -66,6 +66,6 @@ public class AutoClearMod implements ModInitializer {
         // will not race against unregistered systems.
         configManager.startWatchThread();
 
-        LOGGER.info("AutoClear initialized successfully. Type /autoclear help for commands.");
+        LOGGER.info("Arbiter initialized successfully. Type /arbiter help for commands.");
     }
 }
