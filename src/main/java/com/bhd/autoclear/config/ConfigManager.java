@@ -72,7 +72,7 @@ public class ConfigManager {
             configRef.set(loaded);
             LOGGER.info("AutoClear config loaded from {}", configPath);
         } catch (IOException | SyntaxError e) {
-            LOGGER.error("Failed to load autoclear.json5 — using previous/default config", e);
+            LOGGER.error("Failed to load autoclear.json5 - using previous/default config", e);
         }
     }
 
@@ -101,7 +101,7 @@ public class ConfigManager {
      */
     public void applyModePreset(AutoClearConfig config) {
         switch (config.mode) {
-            case "custom" -> { /* no-op — honour all fields as loaded */ }
+            case "custom" -> { /* no-op - honour all fields as loaded */ }
             case "aggressive" -> {
                 config.clearIntervalSeconds = 60;
                 config.warningStartSeconds = 8;
@@ -172,7 +172,7 @@ public class ConfigManager {
                 config.broadcastClearResults = true;
                 config.logClearsToConsole = true;
             }
-            default -> LOGGER.warn("AutoClear: unknown mode '{}' in config — ignoring (using loaded field values)", config.mode);
+            default -> LOGGER.warn("AutoClear: unknown mode '{}' in config - ignoring (using loaded field values)", config.mode);
         }
     }
 
@@ -181,7 +181,12 @@ public class ConfigManager {
      * On next load, Jankson reads the mode and {@link #applyModePreset} fills all other fields.
      */
     public void saveMode(String modeName) {
-        String content = "// AutoClear preset — hot-reload will apply immediately\n"
+        if ("custom".equals(modeName)) {
+            writeDefaults(); // restore the full annotated default config
+            LOGGER.info("AutoClear: restored default config (mode=custom)");
+            return;
+        }
+        String content = "// AutoClear preset - hot-reload will apply immediately\n"
                 + "{ \"mode\": \"" + modeName + "\" }\n";
         try {
             Files.writeString(configPath, content);
@@ -215,12 +220,91 @@ public class ConfigManager {
     // ── Config file write ─────────────────────────────────────────────────────
 
     private void writeDefaults() {
+        String output = """
+// AutoClear configuration - changes are hot-reloaded automatically (no restart needed)
+{
+    // ── Preset Mode ─────────────────────────────────────────────────────────
+    // Quick-start preset. Options: "custom", "aggressive", "warden", "calm"
+    // "custom" uses all fields below as-is. Any other value overwrites them on load.
+    // Use: /autoclear mode <name>
+    "mode": "custom",
+
+    // ── Timing ──────────────────────────────────────────────────────────────
+    // How often to run a scheduled clear, in seconds.
+    "clearIntervalSeconds": 300,
+    // How many seconds before the clear to show the bossbar countdown.
+    "warningStartSeconds": 30,
+
+    // ── Thresholds ───────────────────────────────────────────────────────────
+    // Minimum number of item entities on the ground to trigger a clear. 0 = always clear.
+    "itemCountThreshold": 100,
+    // Auto-clear when TPS drops below this value. 0.0 = disabled.
+    "emergencyTpsThreshold": 15.0,
+    // Minimum seconds between successive emergency clears.
+    "emergencyClearCooldownSeconds": 60,
+
+    // ── Item Protection ──────────────────────────────────────────────────────
+    // Protect items that have been renamed at an anvil.
+    "protectNamedItems": true,
+    // Protect items that carry any enchantment.
+    "protectEnchantedItems": true,
+    // Minimum vanilla rarity to auto-protect.
+    // COMMON = most items | UNCOMMON = saddles/name tags/golden apples
+    // RARE = tridents/music discs/ender pearls/elytra | EPIC = enchanted golden apple only
+    "protectRarityMinimum": "RARE",
+    // Protect items within this many blocks of any online player. 0 = disabled.
+    "playerProximityRadius": 10,
+
+    // ── Mod & Item Lists ─────────────────────────────────────────────────────
+    // All items from these mod namespaces are always protected.
+    "protectedNamespaces": [
+        "cobblemon",
+    ],
+    // Specific item IDs that are always protected (regardless of rarity).
+    "protectedItems": [
+        "minecraft:nether_star",
+        "minecraft:elytra",
+        "minecraft:dragon_egg",
+        "minecraft:totem_of_undying",
+    ],
+    // Per-namespace clearing priority. Options: PROTECT, LOW, NORMAL, HIGH, BLACKLIST
+    "namespaceTiers": {
+        "minecraft": "NORMAL",
+        "create": "NORMAL",
+    },
+    // Per-item overrides - these win over ALL other rules.
+    // BLACKLIST = always clear | PROTECT = always keep
+    "itemOverrides": {
+        "minecraft:dirt": "BLACKLIST",
+        "minecraft:cobblestone": "BLACKLIST",
+        "minecraft:netherite_ingot": "PROTECT",
+    },
+
+    // ── Display ──────────────────────────────────────────────────────────────
+    // Show a bossbar countdown before each scheduled clear.
+    "bossbarEnabled": true,
+    // Bossbar segment style. Options: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20
+    "bossbarStyle": "NOTCHED_10",
+    // Seconds at which the bossbar turns yellow.
+    "bossbarYellowThresholdSeconds": 15,
+    // Seconds at which the bossbar turns red.
+    "bossbarRedThresholdSeconds": 5,
+    // Show an actionbar message in addition to the bossbar.
+    "actionbarWarningsEnabled": false,
+
+    // ── Per-Dimension Overrides ──────────────────────────────────────────────
+    // Override any setting per dimension. Omitted fields inherit global values.
+    // Example: "minecraft:the_nether": { "clearIntervalSeconds": 180 }
+    "dimensions": { },
+
+    // ── Logging & Broadcast ──────────────────────────────────────────────────
+    // Log clear results to the server console.
+    "logClearsToConsole": true,
+    // Broadcast clear results to all players in chat.
+    "broadcastClearResults": true,
+}
+""";
         try {
-            AutoClearConfig defaults = new AutoClearConfig();
-            JsonObject json = (JsonObject) jankson.toJson(defaults);
-            // Inject top-level comment
-            String output = "// AutoClear configuration — changes are hot-reloaded automatically (no restart needed)\n"
-                    + json.toJson(JsonGrammar.JSON5);
             Files.createDirectories(configPath.getParent());
             Files.writeString(configPath, output);
             LOGGER.info("Created default config at {}", configPath);
@@ -257,7 +341,7 @@ public class ConfigManager {
                         break;
                     }
 
-                    LOGGER.info("Config file modified — reloading autoclear.json5");
+                    LOGGER.info("Config file modified - reloading autoclear.json5");
                     load();
 
                     Runnable cb = onReloadCallback;
@@ -267,12 +351,12 @@ public class ConfigManager {
                 }
 
                 if (!key.reset()) {
-                    LOGGER.warn("Config directory watch key invalidated — hot-reload disabled");
+                    LOGGER.warn("Config directory watch key invalidated - hot-reload disabled");
                     break;
                 }
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to initialise config WatchService — hot-reload disabled", e);
+            LOGGER.error("Failed to initialise config WatchService - hot-reload disabled", e);
         }
     }
 }

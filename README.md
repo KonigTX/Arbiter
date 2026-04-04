@@ -4,7 +4,7 @@
 
 ### Smarter than `/kill @e[type=item]`
 
-**Intelligent ground item clearing for Minecraft servers — protects what matters, clears what doesn't.**
+**Ground item clearing for Minecraft servers — protects what matters, clears what doesn't.**
 
 [![Fabric](https://img.shields.io/badge/loader-Fabric-63432C?style=for-the-badge&logo=fabricmc&logoColor=white)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-62B47A?style=for-the-badge&logo=minecraft&logoColor=white)](https://minecraft.net)
@@ -14,8 +14,6 @@
 
 ---
 
-*Tired of clearlag plugins nuking your Netherite? AutoClear uses a 10-rule priority system to intelligently decide what stays and what goes — with full mod support, TPS-aware emergency clearing, and a bossbar countdown your players will actually appreciate.*
-
 </div>
 
 ---
@@ -24,39 +22,49 @@
 
 ### 🛡️ Smart Item Protection
 - **Named Items** — Anvil-renamed items are never cleared
-- **Enchanted Items** — Any enchanted gear is automatically protected
+- **Enchanted Items** — Any enchanted gear is protected
 - **Rarity Tiers** — Protects Rare and Epic items by default (configurable threshold)
 - **Player Proximity** — Items near players are safe (configurable radius)
+
+**Vanilla rarity reference (Minecraft 1.21.1):**
+
+| Rarity | Name color | Vanilla examples |
+|---|---|---|
+| EPIC | Gold | Enchanted golden apple — the only vanilla EPIC item |
+| RARE | Aqua | Elytra, trident, music discs, totem of undying, ender pearls, beacon |
+| UNCOMMON | Yellow | Saddle, name tag, golden apple, most mob-loot rare drops |
+| COMMON | White | Tools, armor, food, most crafted items — everything else |
+
+> **Note:** `"protect_rarity_minimum": "EPIC"` protects almost nothing by rarity alone — enchanted golden apple is the only vanilla EPIC item. Use `RARE` or `UNCOMMON` for meaningful rarity-based protection.
 
 ### 🔌 Full Mod Support
 - **Namespace Protection** — Protect entire mods with one line (e.g., all `cobblemon` items)
 - **Per-Item Overrides** — PROTECT or BLACKLIST specific items, overriding all other rules
 - **Namespace Tiers** — Assign clearing priority per mod: `LOW`, `NORMAL`, `HIGH`
-- **Works with any mod** — Automatically detects items from Cobblemon, Create, and any other Fabric mod via registry namespace
 
-### ⚡ TPS-Aware Intelligence
-- **Emergency Clear** — Automatically triggers when TPS drops below your threshold
+### ⚡ TPS-Aware Clearing
+- **Emergency Clear** — Triggers when TPS drops below your configured threshold
 - **Cooldown System** — Prevents rapid-fire emergency clears during sustained lag
-- **Item Count Threshold** — Skips clearing if only a few items exist (why bother?)
-- **No `System.gc()` Calls** — Unlike ClearLagg, AutoClear never causes JVM stutter
+- **Item Count Threshold** — Skips clearing if fewer items exist than the configured minimum
+- **No `System.gc()` Calls** — No JVM stutter during clears
 
 ### 🌍 Per-Dimension Configuration
 - **Independent Timers** — Nether clears every 3 minutes while Overworld runs every 5
 - **Dimension Overrides** — Different thresholds, intervals, and protection rules per world
 - **Full Inheritance** — Omitted fields fall back to global defaults
 
-### 📊 Beautiful Display
+### 📊 Bossbar & Display
 - **Bossbar Countdown** — Clean, animated countdown visible to all players
 - **Color Graduation** — Green → Yellow → Red as the timer approaches zero
 - **Late-Join Support** — Players who join mid-countdown see the bar immediately
 - **Optional Actionbar** — Enable actionbar warnings alongside or instead of the bossbar
-- **No Chat Spam** — Your chat stays clean. No more countdown messages every second.
+- **No Chat Spam** — Clear results are broadcast once per clear.
 
 ### 🔧 Hot-Reload Config
 - **JSON5 with Comments** — Every setting is explained inline, right in the config file
 - **Edit While Running** — Changes apply within ~1 second, no restart needed
 - **`/autoclear reload`** — Or reload manually with a command
-- **Validation** — Invalid values are clamped to safe ranges automatically
+- **Validation** — Invalid values are clamped to safe ranges on load
 
 ---
 
@@ -284,7 +292,7 @@ Output: `build/libs/autoclear-1.1.0.jar`
 | Per-dimension config | ✅ | ❌ | ❌ |
 | Hot-reload config | ✅ File watch + command | ❌ | ❌ |
 | Player proximity protection | ✅ | ❌ | ❌ |
-| `System.gc()` stutter | ❌ Never | ❌ Never | ⚠️ Yes |
+| No `System.gc()` stutter | ✅ | ✅ | ❌ |
 | Server-side only | ✅ | ✅ | ✅ (Bukkit) |
 
 ---

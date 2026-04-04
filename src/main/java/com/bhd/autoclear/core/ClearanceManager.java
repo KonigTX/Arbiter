@@ -212,6 +212,10 @@ public class ClearanceManager {
      * @param skipThreshold true if itemCountThreshold should be ignored (force/emergency clears)
      */
     public void executeClear(ServerWorld world, ResolvedConfig config, boolean emergency, boolean skipThreshold) {
+        // Always dismiss the bossbar at the start — whether the clear runs or skips,
+        // the countdown is over and the bar should not stay frozen at 0s.
+        bossBarHandler.dismiss();
+
         ScanResult result = ItemScanner.scan(world, config);
 
         // Threshold check — skip clear if not enough items (scheduled clears only)
@@ -252,8 +256,6 @@ public class ClearanceManager {
             world.getServer().getPlayerManager().broadcast(message, false);
         }
 
-        // Dismiss bossbar after the clear
-        bossBarHandler.dismiss();
     }
 
     /**
