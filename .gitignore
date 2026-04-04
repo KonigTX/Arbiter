@@ -1,0 +1,12 @@
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Internal / planning
+docs/
+PLAN.md
