@@ -38,7 +38,7 @@
 > **Note:** `"protect_rarity_minimum": "EPIC"` protects almost nothing by rarity alone — enchanted golden apple is the only vanilla EPIC item. Use `RARE` or `UNCOMMON` for meaningful rarity-based protection.
 
 ### 🔌 Full Mod Support
-- **Namespace Protection** — Protect entire mods with one line (e.g., all `cobblemon` items)
+- **Namespace Protection** — Protect all items from any mod with one line
 - **Per-Item Overrides** — PROTECT or BLACKLIST specific items, overriding all other rules
 - **Namespace Tiers** — Assign clearing priority per mod: `LOW`, `NORMAL`, `HIGH`
 
@@ -87,8 +87,8 @@ Not sure where to start with configuration? AutoClear ships with three built-in 
 | Mode | Interval | Item Threshold | Protection Level | Proximity / Emergency TPS | Command |
 |---|---|---|---|---|---|
 | `aggressive` | 60 s | 0 (always clear) | EPIC rarity only — named, enchanted, namespace lists all disabled | 2 blocks / 18.0 TPS | `/autoclear mode aggressive` |
-| `warden` | 180 s | 50 items | Named, enchanted, RARE+ rarity, Cobblemon namespace | 8 blocks / 15.0 TPS | `/autoclear mode warden` |
-| `calm` | 600 s | 200 items | Named, enchanted, UNCOMMON+ rarity, Cobblemon + Create namespaces, extra protected items | 20 blocks / 8.0 TPS | `/autoclear mode calm` |
+| `warden` | 180 s | 50 items | Named, enchanted, RARE+ rarity, namespace list | 8 blocks / 15.0 TPS | `/autoclear mode warden` |
+| `calm` | 600 s | 200 items | Named, enchanted, UNCOMMON+ rarity, namespace list, extended protected items | 20 blocks / 8.0 TPS | `/autoclear mode calm` |
 | `custom` | (from config) | (from config) | Hand-tuned — preset is a no-op; all values come from your config file | (from config) | `/autoclear mode custom` |
 
 Applying a preset writes only `{ "mode": "<name>" }` to `config/autoclear.json5`. Preset values are resolved in memory at load time, so upgrading the mod always picks up the latest preset definitions. Switch back to manual tuning at any time by editing the config file and running `/autoclear reload`.
@@ -139,7 +139,7 @@ AutoClear generates a fully-commented `config/autoclear.json5` on first run. Her
 | `protect_enchanted_items` | `true` | Protect enchanted items |
 | `protect_rarity_minimum` | `"RARE"` | Minimum vanilla rarity to auto-protect |
 | `player_proximity_radius` | `10` | Don't clear items within N blocks of players |
-| `protected_namespaces` | `["cobblemon"]` | Protect all items from these mods |
+| `protected_namespaces` | `["mod_namespace"]` | Protect all items from these mods |
 | `bossbar_enabled` | `true` | Show the bossbar countdown |
 | `emergency_clear_cooldown_seconds` | `60` | Minimum seconds between emergency clears |
 | `protected_items` | `["minecraft:nether_star", ...]` | Exact item IDs that are always protected |
@@ -170,7 +170,7 @@ AutoClear generates a fully-commented `config/autoclear.json5` on first run. Her
 
   // ── Mod & Item Lists ────────────────────────────────────────
   "protected_namespaces": [
-    "cobblemon"
+    "your_mod"
   ],
   "protected_items": [
     "minecraft:nether_star",
@@ -236,7 +236,7 @@ AutoClear evaluates every ground item through a **10-rule predicate chain**. The
 | 9 | Player proximity | Protect if within radius of any player |
 | 10 | Default | **Clear** |
 
-> **Example:** A `cobblemon:master_ball` dropped on the ground is protected by Rule 4 (namespace). But `minecraft:cobblestone` marked as `BLACKLIST` in `item_overrides` is cleared by Rule 1 — even if it's enchanted.
+> **Example:** A `mymod:special_item` dropped on the ground is protected by Rule 4 (namespace). But `minecraft:cobblestone` marked as `BLACKLIST` in `item_overrides` is cleared by Rule 1 — even if it's enchanted.
 
 ---
 
@@ -249,17 +249,16 @@ AutoClear evaluates every ground item through a **10-rule predicate chain**. The
 | **Environment** | Server-side only — no client install needed |
 | **Java** | 21+ |
 | **Permissions** | [LuckPerms](https://luckperms.net/) (optional — falls back to OP levels) |
-| **Config GUI** | [Mod Menu](https://modrinth.com/mod/modmenu) (optional) |
 
 ### Mod Compatibility
-AutoClear works with **any Fabric mod** out of the box. Protect any mod's items by adding its namespace to `protected_namespaces`:
+AutoClear works with **any Fabric mod** out of the box. Protect any mod's items by adding its registry namespace to `protected_namespaces`:
 
 ```json5
 "protected_namespaces": [
-  "cobblemon",   // All Cobblemon items (Poke Balls, berries, etc.)
-  "create",      // All Create mod items
-  "ae2",         // Applied Energistics
-  "mythicmetals" // Mythic Metals
+  "create",        // All Create mod items
+  "ae2",           // Applied Energistics 2
+  "mythicmetals",  // Mythic Metals
+  "any_mod_id"     // Any mod — use its registry namespace (shown in F3 debug screen)
 ]
 ```
 
@@ -293,6 +292,7 @@ Output: `build/libs/autoclear-1.1.0.jar`
 | Hot-reload config | ✅ File watch + command | ❌ | ❌ |
 | Player proximity protection | ✅ | ❌ | ❌ |
 | No `System.gc()` stutter | ✅ | ✅ | ❌ |
+| Silent clears (no sounds) | ✅ | ❌ Noteblock beep | ✅ |
 | Server-side only | ✅ | ✅ | ✅ (Bukkit) |
 
 ---

@@ -1,0 +1,25 @@
+{
+  "_comment": "AutoClear language file — en_us",
+
+  "autoclear.bossbar.title": "Items clearing in %ss",
+
+  "autoclear.broadcast.cleared": "[AutoClear] Cleared %s items (%s found)",
+  "autoclear.broadcast.emergency": "[AutoClear] EMERGENCY CLEAR — Cleared %s items (%s found) due to low TPS",
+
+  "autoclear.actionbar.warning": "Items clearing in %ss!",
+
+  "autoclear.command.force.all": "Forcing item clear on all loaded worlds...",
+  "autoclear.command.force.dimension": "Forcing item clear on dimension: %s",
+  "autoclear.command.force.done": "Item clear complete.",
+  "autoclear.command.force.invalid_dimension": "Invalid dimension identifier: '%s'",
+  "autoclear.command.force.world_not_found": "Dimension not loaded or not found: '%s'",
+
+  "autoclear.command.status.header": "=== AutoClear Status ===",
+  "autoclear.command.status.tps": "Current TPS: %s",
+  "autoclear.command.status.world": "  [%s] Next clear in: %s | Items on ground: %s",
+
+  "autoclear.command.reload.reloading": "Reloading AutoClear configuration...",
+  "autoclear.command.reload.done": "AutoClear configuration reloaded successfully.",
+
+  "autoclear.command.stats.header": "=== AutoClear Session Stats ==="
+}
