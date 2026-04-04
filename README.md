@@ -268,7 +268,7 @@ Arbiter works with **any Fabric mod** out of the box. Protect any mod's items by
 
 ```bash
 git clone https://github.com/KonigTX/Arbiter.git
-cd autoclear
+cd Arbiter
 ./gradlew build
 ```
 
