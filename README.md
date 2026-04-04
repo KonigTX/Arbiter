@@ -33,7 +33,7 @@
 | EPIC | Gold | Enchanted golden apple — the only vanilla EPIC item |
 | RARE | Aqua | Elytra, trident, music discs, totem of undying, ender pearls, beacon |
 | UNCOMMON | Yellow | Saddle, name tag, golden apple, most mob-loot rare drops |
-| COMMON | White | Tools, armor, food, most crafted items — everything else |
+| COMMON | White | Swords, pickaxes, standard armor (all tiers), food, raw materials, most crafted items — the vast majority of all items in the game |
 
 > **Note:** `"protect_rarity_minimum": "EPIC"` protects almost nothing by rarity alone — enchanted golden apple is the only vanilla EPIC item. Use `RARE` or `UNCOMMON` for meaningful rarity-based protection.
 
@@ -51,19 +51,19 @@
 ### 🌍 Per-Dimension Configuration
 - **Independent Timers** — Nether clears every 3 minutes while Overworld runs every 5
 - **Dimension Overrides** — Different thresholds, intervals, and protection rules per world
-- **Full Inheritance** — Omitted fields fall back to global defaults
+- **Global Fallback** — Any unset dimension field inherits from global config
 
 ### 📊 Bossbar & Display
 - **Bossbar Countdown** — Clean, animated countdown visible to all players
-- **Color Graduation** — Green → Yellow → Red as the timer approaches zero
-- **Late-Join Support** — Players who join mid-countdown see the bar immediately
-- **Optional Actionbar** — Enable actionbar warnings alongside or instead of the bossbar
-- **No Chat Spam** — Clear results are broadcast once per clear.
+- **Color-Coded Timer** — Bar shifts green → yellow → red as the clear approaches
+- **Late Joiners** — Players who connect mid-countdown see the bar immediately
+- **Optional Actionbar** — Enable actionbar warnings alongside the bossbar
+- **Broadcast Results** — Item counts are announced once per clear, in chat
 
 ### 🔧 Hot-Reload Config
-- **JSON5 with Comments** — Every setting is explained inline, right in the config file
+- **Annotated Config** — Every setting is documented in the config file itself
 - **Edit While Running** — Changes apply within ~1 second, no restart needed
-- **`/autoclear reload`** — Or reload manually with a command
+- **`/autoclear reload`** — Trigger a reload from in-game at any time
 - **Validation** — Invalid values are clamped to safe ranges on load
 
 ---
