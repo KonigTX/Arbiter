@@ -1,9 +1,9 @@
-package com.bhd.arbiter.core;
+package com.arbiter.core;
 
-import com.bhd.arbiter.config.ConfigManager;
-import com.bhd.arbiter.config.ItemTier;
-import com.bhd.arbiter.config.ResolvedConfig;
-import com.bhd.arbiter.display.BossBarHandler;
+import com.arbiter.config.ConfigManager;
+import com.arbiter.config.ItemTier;
+import com.arbiter.config.ResolvedConfig;
+import com.arbiter.display.BossBarHandler;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

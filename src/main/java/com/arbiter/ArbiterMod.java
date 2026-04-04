@@ -1,17 +1,17 @@
-package com.bhd.arbiter;
+package com.arbiter;
 
-import com.bhd.arbiter.commands.AutoClearCommands;
-import com.bhd.arbiter.config.ConfigManager;
-import com.bhd.arbiter.core.ClearanceManager;
-import com.bhd.arbiter.core.StatsTracker;
-import com.bhd.arbiter.core.TpsTracker;
-import com.bhd.arbiter.display.BossBarHandler;
+import com.arbiter.commands.ArbiterCommands;
+import com.arbiter.config.ConfigManager;
+import com.arbiter.core.ClearanceManager;
+import com.arbiter.core.StatsTracker;
+import com.arbiter.core.TpsTracker;
+import com.arbiter.display.BossBarHandler;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AutoClear mod entry point.
+ * Arbiter mod entry point.
  *
  * <p>Wires all subsystems together in strict dependency order and registers them
  * with the Fabric event bus. No static singletons are used — all state lives in
@@ -23,11 +23,11 @@ import org.slf4j.LoggerFactory;
  *   <li>{@link TpsTracker#register()} — start sampling MSPT before ClearanceManager checks TPS.</li>
  *   <li>{@link BossBarHandler#register()} — register join event before ClearanceManager fires warnings.</li>
  *   <li>{@link ClearanceManager#register()} — register tick events with all dependencies ready.</li>
- *   <li>{@link AutoClearCommands#register} — register commands (safe at any point before server start).</li>
+ *   <li>{@link ArbiterCommands#register} — register commands (safe at any point before server start).</li>
  *   <li>{@link ConfigManager#startWatchThread()} — start hot-reload thread last (dependencies must be ready for callback).</li>
  * </ol>
  */
-public class AutoClearMod implements ModInitializer {
+public class ArbiterMod implements ModInitializer {
 
     public static final String MOD_ID = "arbiter";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -59,7 +59,7 @@ public class AutoClearMod implements ModInitializer {
         configManager.setOnReloadCallback(clearanceManager::resetAllCounters);
 
         // ── Step 5: Commands ──────────────────────────────────────────────────
-        AutoClearCommands.register(configManager, clearanceManager, statsTracker, tpsTracker);
+        ArbiterCommands.register(configManager, clearanceManager, statsTracker, tpsTracker);
 
         // ── Step 6: Hot-reload watch thread ───────────────────────────────────
         // Start last — the callback is already wired, so a rapid file change at startup

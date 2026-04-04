@@ -1,6 +1,6 @@
-package com.bhd.arbiter.display;
+package com.arbiter.display;
 
-import com.bhd.arbiter.config.ResolvedConfig;
+import com.arbiter.config.ResolvedConfig;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.server.MinecraftServer;

@@ -1,4 +1,4 @@
-package com.bhd.arbiter.core;
+package com.arbiter.core;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * <p>Guard against division by zero: if {@code getAverageTickTime()} returns 0 (server just
  * started, rolling average not yet meaningful), the last known good TPS is preserved.
  *
- * <p>Designed as a singleton-style class instantiated once in {@code AutoClearMod}.
+ * <p>Designed as a singleton-style class instantiated once in {@code ArbiterMod}.
  */
 public class TpsTracker {
 

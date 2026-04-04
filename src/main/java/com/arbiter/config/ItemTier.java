@@ -1,4 +1,4 @@
-package com.bhd.arbiter.config;
+package com.arbiter.config;
 
 /**
  * Clearing priority tier for items.

@@ -5,16 +5,16 @@
   "name": "Arbiter",
   "description": "Intelligent ground item clearing: named/enchanted/rare item protection, bossbar countdown, TPS-aware emergency clear, per-dimension config, hot-reload.",
   "authors": [
-    "BHD"
+    "KonigTX"
   ],
   "contact": {
-    "sources": "https://github.com/bhd/autoclear"
+    "sources": "https://github.com/KonigTX/Arbiter"
   },
   "license": "MIT",
   "environment": "server",
   "entrypoints": {
     "main": [
-      "com.bhd.arbiter.AutoClearMod"
+      "com.arbiter.ArbiterMod"
     ]
   },
   "depends": {

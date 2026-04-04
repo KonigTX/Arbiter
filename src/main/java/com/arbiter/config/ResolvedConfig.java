@@ -1,4 +1,4 @@
-package com.bhd.arbiter.config;
+package com.arbiter.config;
 
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.util.Identifier;
@@ -12,7 +12,7 @@ import java.util.Map;
  * Immutable, fully-resolved configuration for a single world/dimension.
  *
  * <p>Built by {@link ConfigManager#getResolvedConfig} by merging a {@link DimensionOverride}
- * onto the global {@link AutoClearConfig}. All fields are non-null; downstream code
+ * onto the global {@link ArbiterConfig}. All fields are non-null; downstream code
  * (ClearanceManager, ItemFilters, BossBarHandler) reads this record directly without
  * needing to know whether a value came from the global config or a dimension override.
  *
@@ -109,7 +109,7 @@ public final class ResolvedConfig {
      * Constructs a {@link ResolvedConfig} by merging the global config with an optional
      * dimension override. Any non-null field in {@code override} replaces the global value.
      */
-    public static ResolvedConfig merge(AutoClearConfig global, DimensionOverride override) {
+    public static ResolvedConfig merge(ArbiterConfig global, DimensionOverride override) {
         Builder b = new Builder();
 
         // Timing

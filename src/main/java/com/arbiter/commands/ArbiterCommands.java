@@ -1,10 +1,10 @@
-package com.bhd.arbiter.commands;
+package com.arbiter.commands;
 
-import com.bhd.arbiter.config.ConfigManager;
-import com.bhd.arbiter.core.ClearanceManager;
-import com.bhd.arbiter.core.ItemScanner;
-import com.bhd.arbiter.core.StatsTracker;
-import com.bhd.arbiter.core.TpsTracker;
+import com.arbiter.config.ConfigManager;
+import com.arbiter.core.ClearanceManager;
+import com.arbiter.core.ItemScanner;
+import com.arbiter.core.StatsTracker;
+import com.arbiter.core.TpsTracker;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -34,17 +34,17 @@ import static net.minecraft.server.command.CommandManager.literal;
  * <p>Command tree:
  * <pre>
  * /arbiter
- *   force                    — clear all loaded worlds immediately (autoclear.force, OP 4)
+ *   force                    — clear all loaded worlds immediately (arbiter.force, OP 4)
  *     [dimension]            — optional: e.g., "minecraft:the_nether"
- *   status                   — time until next clear, TPS, item counts (autoclear.status, OP 2)
- *   reload                   — reload config from disk (autoclear.reload, OP 4)
- *   stats                    — session statistics: clears run, items removed (autoclear.stats, OP 2)
+ *   status                   — time until next clear, TPS, item counts (arbiter.status, OP 2)
+ *   reload                   — reload config from disk (arbiter.reload, OP 4)
+ *   stats                    — session statistics: clears run, items removed (arbiter.stats, OP 2)
  * </pre>
  *
  * <p>Permission nodes use {@link Permissions#require(String, int)} from fabric-permissions-api,
  * which bridges transparently to LuckPerms when present and falls back to OP-level checks otherwise.
  */
-public final class AutoClearCommands {
+public final class ArbiterCommands {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Arbiter/Commands");
 
@@ -61,7 +61,7 @@ public final class AutoClearCommands {
     private static final int OP_ADMIN  = 4;
     private static final int OP_VIEWER = 2;
 
-    private AutoClearCommands() {
+    private ArbiterCommands() {
         // Static registration class — not instantiable
     }
 

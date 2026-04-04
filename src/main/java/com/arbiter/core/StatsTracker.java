@@ -1,4 +1,4 @@
-package com.bhd.arbiter.core;
+package com.arbiter.core;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;

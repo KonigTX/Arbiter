@@ -1,4 +1,4 @@
-package com.bhd.arbiter.config;
+package com.arbiter.config;
 
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonGrammar;
@@ -43,7 +43,7 @@ public class ConfigManager {
     private final Path configPath;
 
     /** Atomic reference allows lock-free reads from game threads while the watcher writes. */
-    private final AtomicReference<AutoClearConfig> configRef = new AtomicReference<>(new AutoClearConfig());
+    private final AtomicReference<ArbiterConfig> configRef = new AtomicReference<>(new ArbiterConfig());
 
     /** Callback invoked on the next server tick after a hot-reload completes. */
     private volatile Runnable onReloadCallback = null;
@@ -66,7 +66,7 @@ public class ConfigManager {
 
         try (InputStream in = Files.newInputStream(configPath)) {
             JsonObject parsed = jankson.load(in);
-            AutoClearConfig loaded = jankson.fromJson(parsed, AutoClearConfig.class);
+            ArbiterConfig loaded = jankson.fromJson(parsed, ArbiterConfig.class);
             applyModePreset(loaded);
             loaded.clampToValidRanges();
             configRef.set(loaded);
@@ -81,7 +81,7 @@ public class ConfigManager {
      * Merges the global config with any dimension override registered for {@code worldKey}.
      */
     public ResolvedConfig getResolvedConfig(RegistryKey<World> worldKey) {
-        AutoClearConfig global = configRef.get();
+        ArbiterConfig global = configRef.get();
         String dimensionId = worldKey.getValue().toString(); // e.g. "minecraft:the_nether"
         DimensionOverride override = global.dimensions.get(dimensionId);
         return ResolvedConfig.merge(global, override);
@@ -90,7 +90,7 @@ public class ConfigManager {
     /**
      * Returns the raw global config. Prefer {@link #getResolvedConfig} for actual gameplay logic.
      */
-    public AutoClearConfig getRawConfig() {
+    public ArbiterConfig getRawConfig() {
         return configRef.get();
     }
 
@@ -99,7 +99,7 @@ public class ConfigManager {
      * Must be called after Jankson deserialization and before {@code clampToValidRanges()}.
      * "custom" is a no-op. Unknown strings are logged as a warning.
      */
-    public void applyModePreset(AutoClearConfig config) {
+    public void applyModePreset(ArbiterConfig config) {
         switch (config.mode) {
             case "custom" -> { /* no-op - honour all fields as loaded */ }
             case "aggressive" -> {

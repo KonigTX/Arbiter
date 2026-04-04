@@ -1,7 +1,7 @@
-package com.bhd.arbiter.core;
+package com.arbiter.core;
 
-import com.bhd.arbiter.config.ItemTier;
-import com.bhd.arbiter.config.ResolvedConfig;
+import com.arbiter.config.ItemTier;
+import com.arbiter.config.ResolvedConfig;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;

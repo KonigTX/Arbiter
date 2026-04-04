@@ -1,4 +1,4 @@
-package com.bhd.arbiter.config;
+package com.arbiter.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Root configuration POJO for AutoClear.
+ * Root configuration POJO for Arbiter.
  *
  * <p>All fields carry sensible defaults so that a missing key in the JSON5 file
  * does not break the mod. {@link ConfigManager} handles serialization via Jankson;
@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * <p>Field names match the JSON5 snake_case keys documented in the config file.
  */
-public class AutoClearConfig {
+public class ArbiterConfig {
 
     // ── Preset Mode ───────────────────────────────────────────────────────────
 

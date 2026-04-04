@@ -1,6 +1,6 @@
-package com.bhd.arbiter.core;
+package com.arbiter.core;
 
-import com.bhd.arbiter.config.ResolvedConfig;
+import com.arbiter.config.ResolvedConfig;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.TypeFilter;

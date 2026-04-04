@@ -1,4 +1,4 @@
-# Vault — AutoClear
+# Vault — Arbiter (Fabric Mod)
 
 ## Directory Structure
 ```
