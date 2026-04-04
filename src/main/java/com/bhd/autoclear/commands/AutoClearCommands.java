@@ -6,9 +6,11 @@ import com.bhd.autoclear.core.ItemScanner;
 import com.bhd.autoclear.core.StatsTracker;
 import com.bhd.autoclear.core.TpsTracker;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import java.util.stream.StreamSupport;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -47,10 +49,13 @@ public final class AutoClearCommands {
     private static final Logger LOGGER = LoggerFactory.getLogger("AutoClear/Commands");
 
     // Permission nodes
-    private static final String PERM_FORCE  = "autoclear.force";
-    private static final String PERM_STATUS = "autoclear.status";
-    private static final String PERM_RELOAD = "autoclear.reload";
-    private static final String PERM_STATS  = "autoclear.stats";
+    private static final String PERM_FORCE   = "autoclear.force";
+    private static final String PERM_STATUS  = "autoclear.status";
+    private static final String PERM_RELOAD  = "autoclear.reload";
+    private static final String PERM_STATS   = "autoclear.stats";
+    private static final String PERM_DRYRUN   = "autoclear.dryrun";
+    private static final String PERM_TESTBAR  = "autoclear.testbar";
+    private static final String PERM_MODE     = "autoclear.mode";
 
     // OP fallback levels
     private static final int OP_ADMIN  = 4;
@@ -97,6 +102,9 @@ public final class AutoClearCommands {
                 .then(buildStatus(clearanceManager, tpsTracker))
                 .then(buildReload(configManager, clearanceManager))
                 .then(buildStats(statsTracker))
+                .then(buildDryRun(clearanceManager))
+                .then(buildTestBar(clearanceManager, configManager))
+                .then(buildMode(configManager, clearanceManager))
         );
 
         LOGGER.debug("/autoclear command tree registered");
@@ -119,12 +127,12 @@ public final class AutoClearCommands {
     private static int executeForceAll(CommandContext<ServerCommandSource> ctx, ClearanceManager clearanceManager) {
         MinecraftServer server = ctx.getSource().getServer();
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.force.all").formatted(Formatting.YELLOW), true);
+            () -> Text.literal("Forcing item clear on all loaded worlds...").formatted(Formatting.YELLOW), true);
 
         clearanceManager.forceAllWorlds(server);
 
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.force.done").formatted(Formatting.GREEN), true);
+            () -> Text.literal("Item clear complete.").formatted(Formatting.GREEN), true);
         return 1;
     }
 
@@ -136,29 +144,29 @@ public final class AutoClearCommands {
         Identifier dimensionId = Identifier.tryParse(dimensionStr);
         if (dimensionId == null) {
             ctx.getSource().sendError(
-                Text.translatable("autoclear.command.force.invalid_dimension", dimensionStr));
+                Text.literal("Invalid dimension identifier: '" + dimensionStr + "'"));
             return 0;
         }
 
-        Optional<ServerWorld> worldOpt = server.getWorlds().stream()
+        Optional<ServerWorld> worldOpt = StreamSupport.stream(server.getWorlds().spliterator(), false)
                 .filter(w -> w.getRegistryKey().getValue().equals(dimensionId))
                 .findFirst();
 
         if (worldOpt.isEmpty()) {
             ctx.getSource().sendError(
-                Text.translatable("autoclear.command.force.world_not_found", dimensionStr));
+                Text.literal("Dimension not loaded or not found: '" + dimensionStr + "'"));
             return 0;
         }
 
         ServerWorld world = worldOpt.get();
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.force.dimension", dimensionStr).formatted(Formatting.YELLOW),
+            () -> Text.literal("Forcing item clear on dimension: " + dimensionStr).formatted(Formatting.YELLOW),
             true);
 
         clearanceManager.forceWorld(world);
 
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.force.done").formatted(Formatting.GREEN), true);
+            () -> Text.literal("Item clear complete.").formatted(Formatting.GREEN), true);
         return 1;
     }
 
@@ -182,9 +190,9 @@ public final class AutoClearCommands {
         double tps = tpsTracker.getCurrentTps();
 
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.status.header").formatted(Formatting.GOLD), false);
+            () -> Text.literal("=== AutoClear Status ===").formatted(Formatting.GOLD), false);
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.status.tps", String.format("%.2f", tps))
+            () -> Text.literal("Current TPS: " + String.format("%.2f", tps))
                     .formatted(tps >= 18.0 ? Formatting.GREEN : tps >= 14.0 ? Formatting.YELLOW : Formatting.RED),
             false);
 
@@ -199,7 +207,7 @@ public final class AutoClearCommands {
                     : "pending";
 
             ctx.getSource().sendFeedback(
-                () -> Text.translatable("autoclear.command.status.world", worldName, displayTime, itemCount)
+                () -> Text.literal("  [" + worldName + "] Next clear in: " + displayTime + " | Items on ground: " + itemCount)
                         .formatted(Formatting.AQUA),
                 false);
         }
@@ -223,13 +231,13 @@ public final class AutoClearCommands {
             ClearanceManager clearanceManager) {
 
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.reload.reloading").formatted(Formatting.YELLOW), true);
+            () -> Text.literal("Reloading AutoClear configuration...").formatted(Formatting.YELLOW), true);
 
         configManager.load();
         clearanceManager.resetAllCounters();
 
         ctx.getSource().sendFeedback(
-            () -> Text.translatable("autoclear.command.reload.done").formatted(Formatting.GREEN), true);
+            () -> Text.literal("AutoClear configuration reloaded successfully.").formatted(Formatting.GREEN), true);
         LOGGER.info("/autoclear reload executed by {}", ctx.getSource().getName());
         return 1;
     }
@@ -253,5 +261,202 @@ public final class AutoClearCommands {
                 () -> Text.literal(finalLine).formatted(Formatting.WHITE), false);
         }
         return 1;
+    }
+
+    // ── /autoclear dryrun [dimension] ────────────────────────────────────────
+
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildDryRun(
+            ClearanceManager clearanceManager) {
+
+        return literal("dryrun")
+            .requires(Permissions.require(PERM_DRYRUN, OP_VIEWER))
+            .executes(ctx -> executeDryRunAll(ctx, clearanceManager))
+            .then(
+                argument("dimension", StringArgumentType.string())
+                    .executes(ctx -> executeDryRunDimension(ctx, clearanceManager))
+            );
+    }
+
+    private static int executeDryRunAll(
+            CommandContext<ServerCommandSource> ctx, ClearanceManager clearanceManager) {
+
+        MinecraftServer server = ctx.getSource().getServer();
+        ctx.getSource().sendFeedback(
+            () -> Text.literal("[AutoClear DryRun] Scanning all loaded worlds...")
+                    .formatted(Formatting.GOLD), false);
+
+        for (ServerWorld world : server.getWorlds()) {
+            ClearanceManager.DryRunResult result = clearanceManager.dryRun(world);
+            sendDryRunFeedback(ctx.getSource(), world, result);
+        }
+        return 1;
+    }
+
+    private static int executeDryRunDimension(
+            CommandContext<ServerCommandSource> ctx, ClearanceManager clearanceManager) {
+
+        String dimensionStr = StringArgumentType.getString(ctx, "dimension");
+        MinecraftServer server = ctx.getSource().getServer();
+
+        Identifier dimensionId = Identifier.tryParse(dimensionStr);
+        if (dimensionId == null) {
+            ctx.getSource().sendError(
+                Text.literal("Invalid dimension identifier: '" + dimensionStr + "'"));
+            return 0;
+        }
+
+        Optional<ServerWorld> worldOpt = StreamSupport.stream(server.getWorlds().spliterator(), false)
+                .filter(w -> w.getRegistryKey().getValue().equals(dimensionId))
+                .findFirst();
+
+        if (worldOpt.isEmpty()) {
+            ctx.getSource().sendError(
+                Text.literal("Dimension not loaded or not found: '" + dimensionStr + "'"));
+            return 0;
+        }
+
+        ServerWorld world = worldOpt.get();
+        ClearanceManager.DryRunResult result = clearanceManager.dryRun(world);
+        sendDryRunFeedback(ctx.getSource(), world, result);
+        return 1;
+    }
+
+    // ── /autoclear testbar [seconds] ─────────────────────────────────────────
+
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildTestBar(
+            ClearanceManager clearanceManager, ConfigManager configManager) {
+
+        return literal("testbar")
+            .requires(Permissions.require(PERM_TESTBAR, OP_ADMIN))
+            .executes(ctx -> executeTestBar(ctx, clearanceManager, configManager, -1))
+            .then(
+                argument("seconds", IntegerArgumentType.integer(1, 300))
+                    .executes(ctx -> executeTestBar(ctx, clearanceManager, configManager,
+                            IntegerArgumentType.getInteger(ctx, "seconds")))
+            );
+    }
+
+    private static int executeTestBar(
+            CommandContext<ServerCommandSource> ctx,
+            ClearanceManager clearanceManager,
+            ConfigManager configManager,
+            int secondsArg) {
+
+        int seconds = secondsArg;
+        if (seconds <= 0) {
+            int configured = configManager.getResolvedConfig(net.minecraft.world.World.OVERWORLD).warningStartSeconds;
+            seconds = configured > 0 ? configured : 10;
+        }
+
+        MinecraftServer server = ctx.getSource().getServer();
+        clearanceManager.startTestBar(server, seconds);
+
+        final int finalSeconds = seconds;
+        ctx.getSource().sendFeedback(
+            () -> Text.literal("[AutoClear] Testbar started for " + finalSeconds + "s (no clear will fire).")
+                    .formatted(Formatting.AQUA), false);
+        return 1;
+    }
+
+    // ── /autoclear mode <modeName> ────────────────────────────────────────────
+
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> buildMode(
+            ConfigManager configManager, ClearanceManager clearanceManager) {
+
+        return literal("mode")
+            .requires(Permissions.require(PERM_MODE, OP_ADMIN))
+            .then(
+                argument("modeName", StringArgumentType.word())
+                    .suggests((ctx, builder) -> {
+                        for (String name : new String[]{"aggressive", "warden", "calm", "custom"}) {
+                            builder.suggest(name);
+                        }
+                        return builder.buildFuture();
+                    })
+                    .executes(ctx -> executeMode(ctx, configManager, clearanceManager,
+                            StringArgumentType.getString(ctx, "modeName")))
+            );
+    }
+
+    private static int executeMode(
+            CommandContext<ServerCommandSource> ctx,
+            ConfigManager configManager,
+            ClearanceManager clearanceManager,
+            String modeName) {
+
+        java.util.Set<String> valid = java.util.Set.of("aggressive", "warden", "calm", "custom");
+        if (!valid.contains(modeName)) {
+            ctx.getSource().sendError(
+                Text.literal("Unknown mode '" + modeName + "'. Valid modes: aggressive, warden, calm, custom"));
+            return 0;
+        }
+
+        configManager.saveMode(modeName);
+        configManager.load();
+        clearanceManager.resetAllCounters();
+
+        ctx.getSource().sendFeedback(
+            () -> Text.literal("[AutoClear] Mode set to '" + modeName + "' — config reloaded.")
+                    .formatted(Formatting.GREEN), true);
+        return 1;
+    }
+
+    private static void sendDryRunFeedback(
+            ServerCommandSource source, ServerWorld world, ClearanceManager.DryRunResult result) {
+
+        String worldName = world.getRegistryKey().getValue().toString();
+
+        // Header
+        source.sendFeedback(
+            () -> Text.literal("[AutoClear DryRun] " + worldName)
+                    .formatted(Formatting.AQUA), false);
+
+        // Total found
+        final int totalFound = result.totalFound();
+        source.sendFeedback(
+            () -> Text.literal("  Total items found : " + totalFound)
+                    .formatted(Formatting.WHITE), false);
+
+        // Would clear / would protect
+        final int wouldClear   = result.wouldClear();
+        final int wouldProtect = result.wouldProtect();
+
+        if (result.thresholdSkipped()) {
+            source.sendFeedback(
+                () -> Text.literal("  Would clear       : " + wouldClear)
+                        .formatted(Formatting.WHITE), false);
+            source.sendFeedback(
+                () -> Text.literal("  Would protect     : " + wouldProtect)
+                        .formatted(Formatting.WHITE), false);
+
+            final int threshold = result.threshold();
+            source.sendFeedback(
+                () -> Text.literal("  Threshold check   : SKIPPED — "
+                        + totalFound + " < " + threshold + " (itemCountThreshold)")
+                        .formatted(Formatting.YELLOW), false);
+        } else {
+            source.sendFeedback(
+                () -> Text.literal("  Would CLEAR       : " + wouldClear + " items")
+                        .formatted(Formatting.RED), false);
+            source.sendFeedback(
+                () -> Text.literal("  Would protect     : " + wouldProtect)
+                        .formatted(Formatting.WHITE), false);
+        }
+
+        // Protection breakdown header
+        source.sendFeedback(
+            () -> Text.literal("  Protection breakdown:")
+                    .formatted(Formatting.GRAY), false);
+
+        // Per-rule lines (all entries, including zeros)
+        for (java.util.Map.Entry<String, Integer> entry : result.protectionBreakdown().entrySet()) {
+            final String label = entry.getKey();
+            final int count = entry.getValue();
+            // "cleared" is not a protection rule — skip it in the protection block
+            if ("cleared".equals(label)) continue;
+            source.sendFeedback(
+                () -> Text.literal("    " + label + " : " + count)
+                        .formatted(Formatting.WHITE), false);
+        }
     }
 }

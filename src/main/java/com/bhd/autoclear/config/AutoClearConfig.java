@@ -17,6 +17,15 @@ import java.util.Map;
  */
 public class AutoClearConfig {
 
+    // ── Preset Mode ───────────────────────────────────────────────────────────
+
+    /**
+     * Named preset mode. Valid values: {@code "custom"}, {@code "aggressive"}, {@code "warden"}, {@code "calm"}.
+     * {@code "custom"} is the no-op sentinel — all other fields are used as-is from the config file.
+     * Any other preset overwrites the fields below at load time.
+     */
+    public String mode = "custom";
+
     // ── Timing ────────────────────────────────────────────────────────────────
 
     /** How often to run a scheduled clear, in seconds. */

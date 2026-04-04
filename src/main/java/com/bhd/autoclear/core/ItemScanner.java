@@ -49,7 +49,7 @@ public final class ItemScanner {
      */
     public static ScanResult scan(ServerWorld world, ResolvedConfig config) {
         // Collect all item entities using the engine's type bucket — far faster than iterating all entities
-        List<ItemEntity> allItems = world.getEntitiesByType(
+        List<? extends ItemEntity> allItems = world.getEntitiesByType(
                 TypeFilter.instanceOf(ItemEntity.class),
                 entity -> true  // accept all; filtering happens below
         );

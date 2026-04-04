@@ -33,7 +33,7 @@ public class AutoClearMod implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
-    public void initialize() {
+    public void onInitialize() {
         LOGGER.info("AutoClear initializing...");
 
         // ── Step 1: Config ────────────────────────────────────────────────────

@@ -1,8 +1,15 @@
 package com.bhd.autoclear.core;
 
 import com.bhd.autoclear.config.ConfigManager;
+import com.bhd.autoclear.config.ItemTier;
 import com.bhd.autoclear.config.ResolvedConfig;
 import com.bhd.autoclear.display.BossBarHandler;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
+import net.minecraft.util.TypeFilter;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.registry.RegistryKey;
@@ -14,6 +21,9 @@ import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,6 +71,12 @@ public class ClearanceManager {
     /** Epoch milliseconds of the last emergency clear. 0 means never. */
     private volatile long lastEmergencyClearMillis = 0L;
 
+    /** Ticks remaining in an active testbar countdown. 0 means inactive. */
+    private int testBarTicksRemaining = 0;
+
+    /** Total seconds the testbar was started with. */
+    private int testBarTotalSeconds   = 0;
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public ClearanceManager(
@@ -98,6 +114,19 @@ public class ClearanceManager {
         LOGGER.info("ClearanceManager: tick counters reset after config reload");
     }
 
+    // ── Testbar ───────────────────────────────────────────────────────────────
+
+    /**
+     * Starts a bossbar countdown for {@code seconds} seconds without triggering a clear.
+     * Used by {@code /autoclear testbar [seconds]}.
+     */
+    public void startTestBar(MinecraftServer server, int seconds) {
+        testBarTicksRemaining = seconds * 20;
+        testBarTotalSeconds   = seconds;
+        ResolvedConfig config = configManager.getResolvedConfig(World.OVERWORLD);
+        bossBarHandler.startCountdown(server, seconds, config);
+    }
+
     // ── World tick handler ────────────────────────────────────────────────────
 
     private void onWorldTickEnd(ServerWorld world) {
@@ -128,7 +157,7 @@ public class ClearanceManager {
 
         // ── Execute clear ──────────────────────────────────────────────────
         if (remaining <= 0) {
-            executeClear(world, config, false);
+            executeClear(world, config, false, false);
             tickCounters.put(key, intervalTicks);
             warningActive.put(key, false);
         }
@@ -137,10 +166,24 @@ public class ClearanceManager {
     // ── Server tick handler (TPS emergency check) ─────────────────────────────
 
     private void onServerTickEnd(MinecraftServer server) {
+        // ── Testbar countdown tick — runs every tick ───────────────────────────
+        if (testBarTicksRemaining > 0) {
+            testBarTicksRemaining--;
+            if (testBarTicksRemaining <= 0) {
+                bossBarHandler.dismiss();
+                testBarTicksRemaining = 0;
+                testBarTotalSeconds   = 0;
+            } else {
+                int secsRemaining = testBarTicksRemaining / 20;
+                ResolvedConfig config = configManager.getResolvedConfig(World.OVERWORLD);
+                bossBarHandler.tick(server, secsRemaining, testBarTotalSeconds, config);
+            }
+        }
+
+        // ── TPS emergency check — runs every 100 ticks ────────────────────────
         if (++serverTickCount % TpsTracker.getSampleIntervalTicks() != 0) return;
 
         double tps = tpsTracker.getCurrentTps();
-        // Iterate all loaded worlds
         for (ServerWorld world : server.getWorlds()) {
             ResolvedConfig config = configManager.getResolvedConfig(world.getRegistryKey());
 
@@ -154,7 +197,7 @@ public class ClearanceManager {
             LOGGER.warn("TPS dropped to {} (threshold: {}). Triggering emergency clear.",
                     String.format("%.2f", tps), config.emergencyTpsThreshold);
             triggerEmergencyClear(server);
-            break; // one emergency clear per 100-tick check; avoids redundant per-world triggers
+            break;
         }
     }
 
@@ -163,17 +206,18 @@ public class ClearanceManager {
     /**
      * Executes a full scan-and-clear pass for a single world.
      *
-     * @param world     the world to clear
-     * @param config    the resolved config for that world
-     * @param emergency true if triggered by TPS threshold, not the scheduler
+     * @param world         the world to clear
+     * @param config        the resolved config for that world
+     * @param emergency     true if triggered by TPS threshold, not the scheduler
+     * @param skipThreshold true if itemCountThreshold should be ignored (force/emergency clears)
      */
-    public void executeClear(ServerWorld world, ResolvedConfig config, boolean emergency) {
+    public void executeClear(ServerWorld world, ResolvedConfig config, boolean emergency, boolean skipThreshold) {
         ScanResult result = ItemScanner.scan(world, config);
 
-        // Threshold check — skip clear if not enough items
-        if (config.itemCountThreshold > 0 && result.totalFound() < config.itemCountThreshold) {
+        // Threshold check — skip clear if not enough items (scheduled clears only)
+        if (!skipThreshold && config.itemCountThreshold > 0 && result.totalFound() < config.itemCountThreshold) {
             if (config.logClearsToConsole) {
-                LOGGER.info("[AutoClear] {} — skipped (found {}, threshold {})",
+                LOGGER.info("[AutoClear/Scheduled] {} - skipped (found {}, threshold {})",
                         world.getRegistryKey().getValue(), result.totalFound(), config.itemCountThreshold);
             }
             return;
@@ -193,14 +237,17 @@ public class ClearanceManager {
         // Console logging
         if (config.logClearsToConsole) {
             String prefix = emergency ? "[EMERGENCY] " : "";
-            LOGGER.info("{}[AutoClear] {} — cleared {}/{} items",
+            LOGGER.info("{}[AutoClear] {} - cleared {}/{} items",
                     prefix, world.getRegistryKey().getValue(), removed, total);
         }
 
-        // Broadcast to players
-        if (config.broadcastClearResults && world.getServer() != null) {
-            String msgKey = emergency ? "autoclear.broadcast.emergency" : "autoclear.broadcast.cleared";
-            Text message = Text.translatable(msgKey, removed, total)
+        // Broadcast to players — skip if nothing was found (avoids spam on empty worlds)
+        if (config.broadcastClearResults && world.getServer() != null && total > 0) {
+            int saved = total - removed;
+            String msgText = emergency
+                ? "[AutoClear] EMERGENCY CLEAR - Cleared " + removed + " items | " + saved + " protected (low TPS)"
+                : "[AutoClear] Cleared " + removed + " items | " + saved + " protected";
+            Text message = Text.literal(msgText)
                     .formatted(emergency ? Formatting.RED : Formatting.YELLOW);
             world.getServer().getPlayerManager().broadcast(message, false);
         }
@@ -221,7 +268,7 @@ public class ClearanceManager {
 
         for (ServerWorld world : server.getWorlds()) {
             ResolvedConfig config = configManager.getResolvedConfig(world.getRegistryKey());
-            executeClear(world, config, true);
+            executeClear(world, config, true, true);
 
             // Reset the scheduled timer for this world
             int intervalTicks = config.clearIntervalSeconds * 20;
@@ -239,7 +286,7 @@ public class ClearanceManager {
         bossBarHandler.startCountdown(server, config.warningStartSeconds, config);
 
         if (config.actionbarWarningsEnabled) {
-            Text msg = Text.translatable("autoclear.actionbar.warning", config.warningStartSeconds)
+            Text msg = Text.literal("Items clearing in " + config.warningStartSeconds + "s!")
                     .formatted(Formatting.GOLD);
             server.getPlayerManager().broadcast(msg, true); // true = actionbar
         }
@@ -258,7 +305,7 @@ public class ClearanceManager {
         bossBarHandler.dismiss();
         for (ServerWorld world : server.getWorlds()) {
             ResolvedConfig config = configManager.getResolvedConfig(world.getRegistryKey());
-            executeClear(world, config, false);
+            executeClear(world, config, false, true);
             tickCounters.put(world.getRegistryKey(), config.clearIntervalSeconds * 20);
             warningActive.put(world.getRegistryKey(), false);
         }
@@ -272,7 +319,7 @@ public class ClearanceManager {
         RegistryKey<World> key = world.getRegistryKey();
         ResolvedConfig config = configManager.getResolvedConfig(key);
         bossBarHandler.dismiss();
-        executeClear(world, config, false);
+        executeClear(world, config, false, true);
         tickCounters.put(key, config.clearIntervalSeconds * 20);
         warningActive.put(key, false);
     }
@@ -288,4 +335,170 @@ public class ClearanceManager {
         if (remaining == null) return -1;
         return remaining / 20;
     }
+
+    // ── Dry-run (used by /autoclear dryrun) ──────────────────────────────────
+
+    /**
+     * Runs the item scan pipeline without discarding anything and reports what a real
+     * clear would do, including threshold skip detection and per-rule protection breakdown.
+     *
+     * @param world the world to analyse
+     * @return a {@link DryRunResult} describing the hypothetical clear outcome
+     */
+    public DryRunResult dryRun(ServerWorld world) {
+        ResolvedConfig config = configManager.getResolvedConfig(world.getRegistryKey());
+        ScanResult scanResult = ItemScanner.scan(world, config);
+
+        int totalFound = scanResult.totalFound();
+        boolean thresholdSkipped = config.itemCountThreshold > 0
+                && totalFound < config.itemCountThreshold;
+
+        // Items in toRemove are those NOT protected; items NOT in toRemove are protected.
+        int wouldClear = scanResult.removeCount();
+        int wouldProtect = scanResult.protectedCount();
+
+        // Build per-rule breakdown over all entities in the world.
+        List<? extends ItemEntity> allEntities = world.getEntitiesByType(
+                TypeFilter.instanceOf(ItemEntity.class),
+                e -> true);
+
+        Map<String, Integer> breakdown = countByRule(allEntities, world, config);
+
+        return new DryRunResult(totalFound, wouldClear, wouldProtect,
+                thresholdSkipped, config.itemCountThreshold, breakdown);
+    }
+
+    /**
+     * Mirrors the 10-rule priority chain in {@link ItemFilters#shouldProtect} and tallies
+     * how many items are caught by each rule. Each item is attributed to the first rule
+     * that would protect it (matching the short-circuit behaviour of shouldProtect).
+     *
+     * <p>Items that would be cleared (no rule protects them) are counted under "cleared".
+     *
+     * @param entities all item entities in the world
+     * @param world    the world (used for proximity check)
+     * @param config   the resolved config for this world
+     * @return an ordered map of rule label to protected-item count
+     */
+    private Map<String, Integer> countByRule(
+            List<? extends ItemEntity> entities, ServerWorld world, ResolvedConfig config) {
+
+        // Use LinkedHashMap to preserve insertion order for display
+        Map<String, Integer> tally = new LinkedHashMap<>();
+        tally.put("blacklist",         0);
+        tally.put("overrideProtect",   0);
+        tally.put("protectedItems",    0);
+        tally.put("protectedNamespaces", 0);
+        tally.put("namespaceTier",     0);
+        tally.put("rarity",            0);
+        tally.put("enchanted",         0);
+        tally.put("named",             0);
+        tally.put("proximity",         0);
+        tally.put("cleared",           0);
+
+        for (ItemEntity entity : entities) {
+            ItemStack stack = entity.getStack();
+            if (stack.isEmpty()) {
+                // Ghost entity — would be discarded; counts as cleared
+                tally.merge("cleared", 1, Integer::sum);
+                continue;
+            }
+
+            Identifier id = ItemFilters.getItemId(stack);
+
+            // Rule 1 & 2: item_overrides
+            ItemTier explicitTier = config.itemOverrides.get(id.toString());
+            if (explicitTier != null) {
+                if (explicitTier.isBlacklisted()) {
+                    tally.merge("blacklist", 1, Integer::sum);
+                    continue;
+                }
+                if (explicitTier.isProtected()) {
+                    tally.merge("overrideProtect", 1, Integer::sum);
+                    continue;
+                }
+                // LOW/NORMAL/HIGH fall through
+            }
+
+            // Rule 3: protected_items list
+            if (config.protectedItems.contains(id.toString())) {
+                tally.merge("protectedItems", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 4: protected_namespaces list
+            if (config.protectedNamespaces.contains(id.getNamespace())) {
+                tally.merge("protectedNamespaces", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 5: namespace_tiers PROTECT entry
+            ItemTier namespaceTier = config.namespaceTiers.get(id.getNamespace());
+            if (namespaceTier != null && namespaceTier.isProtected()) {
+                tally.merge("namespaceTier", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 6: vanilla Rarity check
+            Rarity itemRarity = stack.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON);
+            if (itemRarity.ordinal() >= config.protectRarityMinimum.ordinal()) {
+                tally.merge("rarity", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 7: enchanted
+            if (config.protectEnchantedItems && stack.hasEnchantments()) {
+                tally.merge("enchanted", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 8: custom name
+            if (config.protectNamedItems && stack.get(DataComponentTypes.CUSTOM_NAME) != null) {
+                tally.merge("named", 1, Integer::sum);
+                continue;
+            }
+
+            // Rule 9: player proximity
+            if (config.playerProximityRadius > 0) {
+                double radiusSq = (double) config.playerProximityRadius * config.playerProximityRadius;
+                boolean nearPlayer = false;
+                for (PlayerEntity player : world.getPlayers()) {
+                    if (player.squaredDistanceTo(entity) <= radiusSq) {
+                        nearPlayer = true;
+                        break;
+                    }
+                }
+                if (nearPlayer) {
+                    tally.merge("proximity", 1, Integer::sum);
+                    continue;
+                }
+            }
+
+            // Rule 10: default — cleared
+            tally.merge("cleared", 1, Integer::sum);
+        }
+
+        return tally;
+    }
+
+    // ── DryRunResult record ───────────────────────────────────────────────────
+
+    /**
+     * Immutable result of a {@link #dryRun} pass.
+     *
+     * @param totalFound         total item entities found in the world
+     * @param wouldClear         items that would be discarded if a real clear ran
+     * @param wouldProtect       items that would be preserved by any protection rule
+     * @param thresholdSkipped   true if totalFound is below itemCountThreshold
+     * @param threshold          the itemCountThreshold value from config
+     * @param protectionBreakdown per-rule tally of protected items (ordered map)
+     */
+    public record DryRunResult(
+            int totalFound,
+            int wouldClear,
+            int wouldProtect,
+            boolean thresholdSkipped,
+            int threshold,
+            Map<String, Integer> protectionBreakdown
+    ) {}
 }

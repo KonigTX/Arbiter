@@ -54,7 +54,7 @@
 
 ### 🔧 Hot-Reload Config
 - **JSON5 with Comments** — Every setting is explained inline, right in the config file
-- **Edit While Running** — Changes apply within 2 seconds, no restart needed
+- **Edit While Running** — Changes apply within ~1 second, no restart needed
 - **`/autoclear reload`** — Or reload manually with a command
 - **Validation** — Invalid values are clamped to safe ranges automatically
 
@@ -72,6 +72,21 @@
 
 ---
 
+## Quick Start Modes
+
+Not sure where to start with configuration? AutoClear ships with three built-in presets that cover the most common server styles. Apply any preset with a single command — the config is rewritten automatically and hot-reloaded within ~1 second.
+
+| Mode | Interval | Item Threshold | Protection Level | Proximity / Emergency TPS | Command |
+|---|---|---|---|---|---|
+| `aggressive` | 60 s | 0 (always clear) | EPIC rarity only — named, enchanted, namespace lists all disabled | 2 blocks / 18.0 TPS | `/autoclear mode aggressive` |
+| `warden` | 180 s | 50 items | Named, enchanted, RARE+ rarity, Cobblemon namespace | 8 blocks / 15.0 TPS | `/autoclear mode warden` |
+| `calm` | 600 s | 200 items | Named, enchanted, UNCOMMON+ rarity, Cobblemon + Create namespaces, extra protected items | 20 blocks / 8.0 TPS | `/autoclear mode calm` |
+| `custom` | (from config) | (from config) | Hand-tuned — preset is a no-op; all values come from your config file | (from config) | `/autoclear mode custom` |
+
+Applying a preset writes only `{ "mode": "<name>" }` to `config/autoclear.json5`. Preset values are resolved in memory at load time, so upgrading the mod always picks up the latest preset definitions. Switch back to manual tuning at any time by editing the config file and running `/autoclear reload`.
+
+---
+
 ## 💻 Commands
 
 ```
@@ -79,7 +94,12 @@
 /autoclear status               Show TPS, time until next clear, item counts per world
 /autoclear reload               Reload config from disk without restarting
 /autoclear stats                View session statistics (clears run, items removed)
+/autoclear dryrun [dimension]   Preview what would be cleared without removing anything
+/autoclear testbar [seconds]    Run a bossbar countdown test (default: warning_start_seconds)
+/autoclear mode <preset>        Apply a preset: aggressive | warden | calm | custom
 ```
+
+*`dryrun` output example: `Would CLEAR: 47 items — Would protect: 12`*
 
 ### Permissions
 
@@ -89,6 +109,9 @@
 | `autoclear.status` | 2 | View clear timers and TPS |
 | `autoclear.reload` | 4 | Reload configuration |
 | `autoclear.stats` | 2 | View session statistics |
+| `autoclear.dryrun` | 2 | Preview a clear without removing items |
+| `autoclear.testbar` | 4 | Run a bossbar countdown test |
+| `autoclear.mode` | 4 | Apply a built-in preset mode |
 
 > Permissions integrate with [LuckPerms](https://luckperms.net/) automatically. Falls back to OP level when LuckPerms is not installed.
 
@@ -110,6 +133,11 @@ AutoClear generates a fully-commented `config/autoclear.json5` on first run. Her
 | `player_proximity_radius` | `10` | Don't clear items within N blocks of players |
 | `protected_namespaces` | `["cobblemon"]` | Protect all items from these mods |
 | `bossbar_enabled` | `true` | Show the bossbar countdown |
+| `emergency_clear_cooldown_seconds` | `60` | Minimum seconds between emergency clears |
+| `protected_items` | `["minecraft:nether_star", ...]` | Exact item IDs that are always protected |
+| `item_overrides` | `{"minecraft:dirt": "BLACKLIST", ...}` | Per-item PROTECT or BLACKLIST — overrides all other rules |
+| `actionbar_warnings_enabled` | `false` | Show countdown in actionbar alongside or instead of bossbar |
+| `broadcast_clear_results` | `true` | Announce clear results to all players |
 
 <details>
 <summary><b>📄 Full Example Config</b> (click to expand)</summary>
@@ -237,7 +265,7 @@ cd autoclear
 ./gradlew build
 ```
 
-Output: `build/libs/autoclear-1.0.0.jar`
+Output: `build/libs/autoclear-1.1.0.jar`
 
 ---
 

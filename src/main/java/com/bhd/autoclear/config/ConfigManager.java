@@ -67,6 +67,7 @@ public class ConfigManager {
         try (InputStream in = Files.newInputStream(configPath)) {
             JsonObject parsed = jankson.load(in);
             AutoClearConfig loaded = jankson.fromJson(parsed, AutoClearConfig.class);
+            applyModePreset(loaded);
             loaded.clampToValidRanges();
             configRef.set(loaded);
             LOGGER.info("AutoClear config loaded from {}", configPath);
@@ -91,6 +92,103 @@ public class ConfigManager {
      */
     public AutoClearConfig getRawConfig() {
         return configRef.get();
+    }
+
+    /**
+     * Overwrites fields in {@code config} according to its {@code mode} value.
+     * Must be called after Jankson deserialization and before {@code clampToValidRanges()}.
+     * "custom" is a no-op. Unknown strings are logged as a warning.
+     */
+    public void applyModePreset(AutoClearConfig config) {
+        switch (config.mode) {
+            case "custom" -> { /* no-op — honour all fields as loaded */ }
+            case "aggressive" -> {
+                config.clearIntervalSeconds = 60;
+                config.warningStartSeconds = 8;
+                config.itemCountThreshold = 0;
+                config.protectNamedItems = false;
+                config.protectEnchantedItems = false;
+                config.protectRarityMinimum = "EPIC";
+                config.playerProximityRadius = 2;
+                config.protectedNamespaces = new java.util.ArrayList<>();
+                config.protectedItems = new java.util.ArrayList<>();
+                config.itemOverrides = new java.util.HashMap<>();
+                config.emergencyTpsThreshold = 18.0;
+                config.emergencyClearCooldownSeconds = 30;
+                config.bossbarEnabled = true;
+                config.bossbarStyle = "PROGRESS";
+                config.broadcastClearResults = true;
+                config.logClearsToConsole = true;
+            }
+            case "warden" -> {
+                config.clearIntervalSeconds = 180;
+                config.warningStartSeconds = 20;
+                config.itemCountThreshold = 50;
+                config.protectNamedItems = true;
+                config.protectEnchantedItems = true;
+                config.protectRarityMinimum = "RARE";
+                config.playerProximityRadius = 8;
+                config.protectedNamespaces = new java.util.ArrayList<>(java.util.List.of("cobblemon"));
+                config.protectedItems = new java.util.ArrayList<>(java.util.List.of(
+                        "minecraft:nether_star",
+                        "minecraft:elytra",
+                        "minecraft:dragon_egg",
+                        "minecraft:totem_of_undying"
+                ));
+                config.itemOverrides = new java.util.HashMap<>(java.util.Map.of(
+                        "minecraft:dirt", "BLACKLIST",
+                        "minecraft:cobblestone", "BLACKLIST"
+                ));
+                config.emergencyTpsThreshold = 15.0;
+                config.emergencyClearCooldownSeconds = 60;
+                config.bossbarEnabled = true;
+                config.bossbarStyle = "NOTCHED_10";
+                config.broadcastClearResults = true;
+                config.logClearsToConsole = true;
+            }
+            case "calm" -> {
+                config.clearIntervalSeconds = 600;
+                config.warningStartSeconds = 60;
+                config.itemCountThreshold = 200;
+                config.protectNamedItems = true;
+                config.protectEnchantedItems = true;
+                config.protectRarityMinimum = "UNCOMMON";
+                config.playerProximityRadius = 20;
+                config.protectedNamespaces = new java.util.ArrayList<>(java.util.List.of("cobblemon", "create"));
+                config.protectedItems = new java.util.ArrayList<>(java.util.List.of(
+                        "minecraft:nether_star",
+                        "minecraft:elytra",
+                        "minecraft:dragon_egg",
+                        "minecraft:totem_of_undying",
+                        "minecraft:beacon",
+                        "minecraft:shulker_shell",
+                        "minecraft:heart_of_the_sea"
+                ));
+                config.itemOverrides = new java.util.HashMap<>();
+                config.emergencyTpsThreshold = 8.0;
+                config.emergencyClearCooldownSeconds = 120;
+                config.bossbarEnabled = true;
+                config.bossbarStyle = "NOTCHED_20";
+                config.broadcastClearResults = true;
+                config.logClearsToConsole = true;
+            }
+            default -> LOGGER.warn("AutoClear: unknown mode '{}' in config — ignoring (using loaded field values)", config.mode);
+        }
+    }
+
+    /**
+     * Writes a minimal JSON5 file containing only the {@code mode} key to {@code configPath}.
+     * On next load, Jankson reads the mode and {@link #applyModePreset} fills all other fields.
+     */
+    public void saveMode(String modeName) {
+        String content = "// AutoClear preset — hot-reload will apply immediately\n"
+                + "{ \"mode\": \"" + modeName + "\" }\n";
+        try {
+            Files.writeString(configPath, content);
+            LOGGER.info("AutoClear: saved mode '{}' to {}", modeName, configPath);
+        } catch (IOException e) {
+            LOGGER.error("Failed to write mode to autoclear.json5", e);
+        }
     }
 
     /**

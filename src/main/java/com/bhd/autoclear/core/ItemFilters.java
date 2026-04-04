@@ -93,7 +93,7 @@ public final class ItemFilters {
         }
 
         // ── Rule 7: Enchanted item ────────────────────────────────────────────
-        if (config.protectEnchantedItems && stack.isEnchanted()) {
+        if (config.protectEnchantedItems && stack.hasEnchantments()) {
             return true;
         }
 

@@ -4,7 +4,7 @@ import com.bhd.autoclear.config.ResolvedConfig;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.bossbar.ServerBossBar;
+import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ public class BossBarHandler {
         dismiss(); // clean up any lingering bar
 
         totalSeconds = totalSec;
-        Text title = Text.translatable("autoclear.bossbar.title", totalSec);
+        Text title = Text.literal("Items clearing in " + totalSec + "s");
 
         activeBar = new ServerBossBar(title, BossBar.Color.GREEN, config.bossbarStyle);
         activeBar.setPercent(1.0f);
@@ -99,7 +99,7 @@ public class BossBarHandler {
         bar.setPercent(percent);
 
         // Update title to show live countdown
-        bar.setName(Text.translatable("autoclear.bossbar.title", secondsRemaining));
+        bar.setName(Text.literal("Items clearing in " + secondsRemaining + "s"));
 
         // Color graduation: GREEN → YELLOW → RED
         BossBar.Color newColor;
