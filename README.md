@@ -272,7 +272,7 @@ cd autoclear
 ./gradlew build
 ```
 
-Output: `build/libs/autoclear-1.1.0.jar`
+Output: `build/libs/autoclear-1.1.1.jar`
 
 ---
 
@@ -305,8 +305,6 @@ Output: `build/libs/autoclear-1.1.0.jar`
 
 <div align="center">
 
-**Built with Fabric API, Cloth Config, and Jankson**
-
-*Made by [KonigTX](https://github.com/KonigTX)*
+**Built with Fabric API and Jankson**
 
 </div>
